@@ -1,5 +1,7 @@
 # Eve Local
 
+**Download page: https://alexa-loste.github.io/eve-local/**
+
 Eve is a long-term memory for the AI assistants you already use. Eve Local is the Mac app: your memories live on your computer, in `~/Library/Application Support/Eve`, with no account and no server.
 
 ## Install

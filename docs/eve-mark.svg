@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <title>Eve</title>
+  <defs><clipPath id="eveHorizonWarm"><rect x="0" y="0" width="48" height="27.7"></rect></clipPath></defs>
+  <circle cx="24" cy="26" r="6.3" fill="#B5673F" clip-path="url(#eveHorizonWarm)"></circle>
+  <path d="M7 28.5 Q24 27.5 41 28.5" stroke="#3A322C" stroke-width="3.4" stroke-linecap="round"></path>
+</svg>

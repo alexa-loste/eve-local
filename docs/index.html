@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eve for Mac</title>
+<meta name="description" content="Eve remembers what matters to you across your conversations with Claude and ChatGPT. Everything stays on your Mac.">
+<link rel="icon" href="eve-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1ec; --card: #ffffff; --ink: #1e2126; --soft: #5d6168; --faint: #8f939a;
+    --rule: #dcd8cf; --warm: #b5673f; --violet: #6a4fc4; --button: #1e2126; --button-ink: #ffffff;
+    --shot: #ecebe7; --shot-ink: #3a3d42;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17181b; --card: #202226; --ink: #f1efeb; --soft: #b7b2aa; --faint: #8b857c;
+      --rule: #34363b; --warm: #d0855c; --violet: #9c86ec; --button: #f1efeb; --button-ink: #17181b;
+      --shot: #2a2c31; --shot-ink: #d8d4cd;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17181b; --card: #202226; --ink: #f1efeb; --soft: #b7b2aa; --faint: #8b857c;
+    --rule: #34363b; --warm: #d0855c; --violet: #9c86ec; --button: #f1efeb; --button-ink: #17181b;
+    --shot: #2a2c31; --shot-ink: #d8d4cd;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 17px/1.55 "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 20px 64px; }
+  a { color: inherit; text-underline-offset: 3px; }
+  header { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 20px; }
+  header svg { flex: none; }
+  .hero { padding: 56px 0 40px; }
+  h1 { font-size: clamp(34px, 7vw, 52px); line-height: 1.08; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 18px; }
+  .lede { font-size: 20px; color: var(--soft); margin: 0 0 32px; max-width: 34em; }
+  .download { display: inline-flex; align-items: center; gap: 10px; background: var(--button); color: var(--button-ink);
+              text-decoration: none; font-weight: 600; font-size: 19px; padding: 16px 28px; border-radius: 10px; }
+  .download:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--violet); outline-offset: 3px; }
+  .download svg { width: 20px; height: 20px; }
+  .fine { color: var(--faint); font-size: 15px; margin: 14px 0 0; }
+  .phone-note { display: none; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; margin-top: 18px; color: var(--soft); }
+  .moving { background: var(--card); border: 1px solid var(--rule); border-left: 4px solid var(--warm); border-radius: 10px; padding: 18px 20px; margin: 8px 0 48px; }
+  .moving h2 { font-size: 18px; margin: 0 0 6px; }
+  .moving p { margin: 0; color: var(--soft); }
+  h2.section { font-size: 24px; font-weight: 600; margin: 0 0 20px; }
+  ol.steps { list-style: none; padding: 0; margin: 0 0 56px; display: grid; gap: 18px; counter-reset: step; }
+  ol.steps li { counter-increment: step; background: var(--card); border: 1px solid var(--rule); border-radius: 12px;
+                padding: 20px; display: grid; grid-template-columns: 1fr 220px; gap: 20px; align-items: center; }
+  .step-text h3 { margin: 0 0 6px; font-size: 19px; display: flex; align-items: center; gap: 10px; }
+  .step-text h3::before { content: counter(step); flex: none; width: 28px; height: 28px; border-radius: 50%;
+                          background: var(--ink); color: var(--bg); display: grid; place-items: center; font-size: 14px; }
+  .step-text p { margin: 0; color: var(--soft); }
+  .shot { width: 100%; height: auto; display: block; }
+  dl.faq { margin: 0 0 48px; }
+  dl.faq dt { font-weight: 600; margin-top: 18px; }
+  dl.faq dd { margin: 4px 0 0; color: var(--soft); }
+  footer { border-top: 1px solid var(--rule); padding-top: 22px; color: var(--faint); font-size: 15px; }
+  details summary { cursor: pointer; color: var(--soft); }
+  details p { margin: 10px 0 8px; }
+  .cmd { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+  .cmd code { flex: 1; min-width: 0; overflow-x: auto; white-space: nowrap; background: var(--card); border: 1px solid var(--rule);
+              border-radius: 8px; padding: 10px 12px; font: 13px/1.5 ui-monospace, Menlo, monospace; color: var(--ink); }
+  .cmd button { font: inherit; font-size: 14px; border: 1px solid var(--rule); background: var(--card); color: var(--ink);
+                border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+  @media (max-width: 640px) {
+    main { padding: 20px 16px 48px; }
+    .hero { padding: 36px 0 28px; }
+    .lede { font-size: 18px; }
+    ol.steps li { grid-template-columns: 1fr; }
+    .shot { max-width: 300px; }
+  }
+  @media (pointer: coarse) and (max-width: 900px) { .phone-note { display: block; } }
+</style>
+</head>
+<body>
+<main>
+  <header><svg viewBox="0 0 48 48" width="34" height="34" fill="none" aria-hidden="true"><defs><clipPath id="horizon"><rect width="48" height="27.7"/></clipPath></defs><circle cx="24" cy="26" r="6.3" fill="var(--warm)" clip-path="url(#horizon)"/><path d="M7 28.5 Q24 27.5 41 28.5" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>Eve</header>
+
+  <section class="hero">
+    <h1>Your memory,<br>on your Mac.</h1>
+    <p class="lede">Eve remembers what matters to you across your conversations with Claude and ChatGPT. Everything it keeps stays on your computer.</p>
+    <a class="download" href="https://github.com/alexa-loste/eve-local/releases/latest/download/Eve.dmg">
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 3v10m0 0-4-4m4 4 4-4M4 16h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Download Eve for Mac
+    </a>
+    <p class="fine">Free. For Macs with Apple silicon (2020 or newer). About 240 MB.</p>
+    <p class="phone-note">Eve runs on a Mac. Open this page on your Mac to download it.</p>
+  </section>
+
+  <section class="moving" aria-labelledby="moving-title">
+    <h2 id="moving-title">Already using Eve on the web?</h2>
+    <p>First, sign in at <a href="https://evecortex.com/desktop">evecortex.com/desktop</a> and click <strong>Download Eve and my memories</strong>. Eve for Mac finds your memories in your Downloads folder and brings them over for you.</p>
+  </section>
+
+  <h2 class="section">Three steps</h2>
+  <ol class="steps">
+    <li>
+      <div class="step-text">
+        <h3>Drag Eve into Applications</h3>
+        <p>Open the file you downloaded. In the window that appears, drag Eve onto the Applications folder.</p>
+      </div>
+      <svg class="shot" viewBox="0 0 220 120" role="img" aria-label="The Eve icon being dragged onto the Applications folder">
+        <rect x="1" y="1" width="218" height="118" rx="10" fill="var(--shot)" stroke="var(--rule)"/>
+        <circle cx="16" cy="13" r="3.5" fill="#e06c5e"/><circle cx="27" cy="13" r="3.5" fill="#e4b54c"/><circle cx="38" cy="13" r="3.5" fill="#62b35b"/>
+        <rect x="28" y="38" width="48" height="48" rx="11" fill="var(--card)" stroke="var(--rule)"/>
+        <circle cx="52" cy="63" r="7" fill="var(--warm)"/><rect x="32" y="63" width="40" height="23" fill="var(--card)"/>
+        <path d="M35 65 Q52 64 69 65" stroke="var(--shot-ink)" stroke-width="3" stroke-linecap="round" fill="none"/>
+        <text x="52" y="102" text-anchor="middle" font-size="10" fill="var(--shot-ink)" font-family="inherit">Eve</text>
+        <path d="M88 62 H128" stroke="var(--violet)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 7"/>
+        <path d="M124 55 L134 62 L124 69" stroke="var(--violet)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M146 44 h14 l5 6 h25 a3 3 0 0 1 3 3 v31 a3 3 0 0 1 -3 3 h-44 a3 3 0 0 1 -3 -3 v-37 a3 3 0 0 1 3 -3z" fill="#6ea8e6"/>
+        <text x="168" y="102" text-anchor="middle" font-size="10" fill="var(--shot-ink)" font-family="inherit">Applications</text>
+      </svg>
+    </li>
+    <li>
+      <div class="step-text">
+        <h3>Let your Mac open it, once</h3>
+        <p>Open Eve from Applications. Your Mac will say it couldn't check Eve. Click <strong>Done</strong>. Then open <strong>System Settings</strong>, choose <strong>Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong> next to Eve. Confirm with your password or Touch ID. You only do this the first time.</p>
+      </div>
+      <svg class="shot" viewBox="0 0 220 120" role="img" aria-label="Privacy and Security settings with the Open Anyway button next to a message about Eve">
+        <rect x="1" y="1" width="218" height="118" rx="10" fill="var(--shot)" stroke="var(--rule)"/>
+        <text x="14" y="24" font-size="11" font-weight="600" fill="var(--shot-ink)" font-family="inherit">Privacy &amp; Security</text>
+        <text x="14" y="46" font-size="9" fill="var(--faint)" font-family="inherit">Security</text>
+        <rect x="12" y="54" width="196" height="50" rx="7" fill="var(--card)" stroke="var(--rule)"/>
+        <text x="22" y="74" font-size="9.5" fill="var(--shot-ink)" font-family="inherit">“Eve” was blocked to</text>
+        <text x="22" y="87" font-size="9.5" fill="var(--shot-ink)" font-family="inherit">protect your Mac.</text>
+        <rect x="128" y="66" width="70" height="24" rx="6" fill="var(--card)" stroke="var(--violet)" stroke-width="2"/>
+        <text x="163" y="82" text-anchor="middle" font-size="9.5" font-weight="600" fill="var(--ink)" font-family="inherit">Open Anyway</text>
+      </svg>
+    </li>
+    <li>
+      <div class="step-text">
+        <h3>Click “Set up everything”</h3>
+        <p>Eve connects to Claude on your Mac and brings your memories over. Then just talk to Claude as usual and ask it to remember things.</p>
+      </div>
+      <svg class="shot" viewBox="0 0 220 120" role="img" aria-label="Eve's welcome screen with the Set up everything button">
+        <rect x="1" y="1" width="218" height="118" rx="10" fill="var(--shot)" stroke="var(--rule)"/>
+        <text x="16" y="30" font-size="13" font-weight="600" fill="var(--shot-ink)" font-family="inherit">Your memory. On your Mac.</text>
+        <rect x="14" y="44" width="192" height="58" rx="8" fill="var(--card)" stroke="var(--violet)"/>
+        <rect x="24" y="56" width="98" height="24" rx="5" fill="var(--ink)"/>
+        <text x="73" y="72" text-anchor="middle" font-size="10" font-weight="600" fill="var(--bg)" font-family="inherit">Set up everything</text>
+        <rect x="24" y="88" width="160" height="4" rx="2" fill="var(--rule)"/>
+      </svg>
+    </li>
+  </ol>
+
+  <h2 class="section">Questions</h2>
+  <dl class="faq">
+    <dt>Does it cost anything?</dt>
+    <dd>No. Eve is free. When you talk to Claude or ChatGPT, your assistant files your memories as part of the conversation you are already having.</dd>
+    <dt>Where are my memories kept?</dt>
+    <dd>On your Mac only, with no account to make. You can see, edit and delete every memory in Eve. The one exception: if you type a memory into Eve itself, its text goes to the AI model chosen in Eve's settings, so Eve can organise it.</dd>
+    <dt>Which assistants work with it?</dt>
+    <dd>Claude Desktop and Claude Code connect with one click. Other assistants that support MCP can connect too: Eve shows you how in Settings.</dd>
+  </dl>
+
+  <footer>
+    <details>
+      <summary>Comfortable with Terminal? Install in one step</summary>
+      <p>This downloads Eve, checks it, puts it in Applications and opens it, with no permission step:</p>
+      <div class="cmd"><code id="cmd">curl -fsSL https://github.com/alexa-loste/eve-local/releases/latest/download/install.sh | sh</code><button type="button" id="copy">Copy</button></div>
+    </details>
+    <p><a href="https://github.com/alexa-loste/eve-local/releases">All versions</a></p>
+  </footer>
+</main>
+<script>
+  document.getElementById('copy').addEventListener('click', async (event) => {
+    try { await navigator.clipboard.writeText(document.getElementById('cmd').textContent); event.target.textContent = 'Copied'; }
+    catch (_) { event.target.textContent = 'Select and copy'; }
+  });
+</script>
+</body>
+</html>
