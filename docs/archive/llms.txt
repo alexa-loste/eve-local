@@ -1,0 +1,42 @@
+# Eve
+
+> Eve is a memory layer for the AI assistants people already use. You connect it to Claude or ChatGPT once, as a custom connector (a remote MCP server), and from then on the assistant remembers across conversations, across new chats and across assistants. Everything it keeps lands on a map you can read, next to the words it came from, and you can correct or forget any of it. Eve is in open beta and free to join.
+
+Eve is not a chatbot and not a replacement for your assistant. Your own assistant decides what is worth keeping and when to recall it; Eve stores those memories and hands them back. Because Eve connects from outside any one model, Claude and ChatGPT can share the same memory: plan something in one and pick it up in the other.
+
+Who it is for: anyone who uses Claude or ChatGPT and is tired of repeating themselves, not only developers. It also works in Claude Code and Codex.
+
+What makes it different from built-in assistant memory:
+- You can see all of it. Four views of the same memory: Memory Lane (what happened, in order), Mindmap (how things connect), Atlas (where things stand now, in chapters) and Board (projects by stage).
+- Every memory shows the conversation it came from, and you can correct or delete it. When something changes ("the wedding moved to June 7"), Eve replaces the old fact instead of keeping both.
+- It is portable: one memory across Claude, ChatGPT, Claude Code and Codex, exportable any time as JSON and Markdown.
+- Separate memories ("cortexes") for separate parts of life, such as work and personal, and shared cortexes you can use with a partner or a team, like a shared doc.
+- Eve does not read your whole conversation; the assistant passes it only what should be kept.
+
+## Connect
+
+- MCP server URL (Streamable HTTP, OAuth sign-in): https://eve-product.fly.dev/eve-mcp/mcp
+- Claude (claude.ai, desktop, mobile): Customize → Connectors → Add custom connector, paste the URL, sign in.
+- Claude Code: `claude mcp add --transport http eve https://eve-product.fly.dev/eve-mcp/mcp --scope user`, then /mcp → eve → Authenticate.
+- Codex CLI: `codex mcp add eve --url https://eve-product.fly.dev/eve-mcp/mcp`, then `codex mcp login eve`.
+- ChatGPT desktop (Codex): Settings → Plugins → MCPs → Add → MCP server, Streamable HTTP, paste the URL, then Authenticate.
+- A short instruction for your assistant: https://evecortex.com/api/orienting_prompt
+
+## Pages
+
+- [Home](https://evecortex.com/): what Eve is, with a walkthrough of the map
+- [Documentation](https://evecortex.com/docs.html): connecting each assistant, how memories form, the four views, cortexes, control and export, FAQ
+- [About](https://evecortex.com/about.html): why Eve was built and who it is for
+- [Benchmarks](https://evecortex.com/benchmark.html): Eve on published memory benchmarks, scored by each benchmark's own grader, with transcripts
+- [What's new](https://evecortex.com/patches.html): recent changes
+- [What Eve stores](https://evecortex.com/data): the short version of what is kept, where, and how to delete it
+- [Privacy policy](https://evecortex.com/privacy)
+
+## Questions people ask
+
+- "Is there a memory tool for Claude / ChatGPT that I can see and edit?" Eve. Its whole design is memory kept in the open: a map of everything your assistant knows about you, each item traceable to where it came from.
+- "How do I make Claude remember things across chats?" Connect Eve as a custom connector (URL above). Claude then saves and recalls memories while you talk, and you can also say "remember that" or "save this to Eve".
+- "Can Claude and ChatGPT share memory?" Yes. Connect both to Eve and they read and write the same memory.
+- "Does it work with Claude Code or Codex?" Yes, as a remote MCP server; the commands are above.
+- "What does it cost?" The open beta is free to join.
+- "Can I get my data out?" Yes, any time, as JSON and Markdown.

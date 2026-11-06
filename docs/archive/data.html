@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eve — what we store</title>
+<meta name="description" content="The two-minute version: what Eve keeps, where it lives, who can read it, and how to delete it.">
+<link rel="canonical" href="data.html">
+<link rel="icon" href="eve-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- GENERATED FILE — do not edit by hand.
+     Source: docs/what-eve-stores.md
+     Regenerate: python3 scripts/render_legal_pages.py
+     tests/test_legal_pages.py fails if this file and its source disagree. -->
+<style>
+  :root{
+    --bg:#f4f1ec; --panel:#fff; --ink:#211e19; --muted:#7b7568;
+    --line:#e7e1d6; --accent:#2f5d4a; --warm:#b5673f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:'Mona Sans','Inter',system-ui,sans-serif;
+        background:var(--bg); color:var(--ink);
+        -webkit-font-smoothing:antialiased; line-height:1.65;}
+  a{color:var(--accent)}
+  .wrap{max-width:46rem; margin:0 auto; padding:3rem 1.25rem 5rem;}
+  .home{display:inline-block; margin-bottom:2rem; font-size:.9rem;
+         color:var(--muted); text-decoration:none;}
+  .home:hover{color:var(--accent)}
+  .sheet{background:var(--panel); border:1px solid var(--line);
+          border-radius:14px; padding:2.5rem 2rem;}
+  h1{font-size:1.9rem; line-height:1.2; margin:0 0 1.25rem;}
+  h2{font-size:1.2rem; margin:2.5rem 0 .75rem; padding-top:1.25rem;
+      border-top:1px solid var(--line);}
+  h3{font-size:1rem; margin:1.75rem 0 .5rem; color:var(--muted);
+      text-transform:uppercase; letter-spacing:.04em;}
+  p{margin:0 0 1rem}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em;
+        background:#efeae1; padding:.1em .35em; border-radius:4px;}
+  .todo{background:var(--warm); color:#fff; font-weight:600; font-size:.8em;
+         letter-spacing:.03em; padding:.1em .45em; border-radius:4px;}
+  .note{background:#fdf3ec; border-left:3px solid var(--warm);
+         padding:.75rem 1rem; border-radius:0 6px 6px 0;
+         font-size:.92rem; color:var(--muted);}
+  .foot{margin-top:2.5rem; font-size:.85rem; color:var(--muted);}
+  @media (max-width:640px){ .sheet{padding:1.75rem 1.25rem} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="home" href="./">&larr; Eve</a>
+<main class="sheet">
+<h1>What Eve stores</h1>
+<p><em>Last updated: 25 September 2026.</em></p>
+<h2>The short version</h2>
+<p>Eve remembers things for you so your assistant does not start from nothing every time. To do that we store what you tell it, on our servers, in a database that is yours alone. You can see every memory, change it, delete it, or take it with you.</p>
+<h2>What we keep</h2>
+<p><strong>Memories.</strong> Facts, people, projects, events, beliefs, questions. Each one shows you its text, its date, and where it came from. Nothing is hidden from you that we can see ourselves.</p>
+<p><strong>Your conversations with Eve on this website.</strong> If you chat with Eve here, we keep that conversation. Conversations you have inside Claude or ChatGPT stay there. We only ever see the specific requests your assistant makes to Eve.</p>
+<p><strong>Your email and name</strong>, from Google sign-in. That is all we ask Google for when you log in.</p>
+<p><strong>Your settings and your usage totals</strong>, so we can show you your plan and stop you going over your spend cap.</p>
+<p><strong>Files you hand us.</strong> If you import a chat history, we hold the file while the import runs and delete it when it finishes, or after seven days if you never finish.</p>
+<h2>Where it lives</h2>
+<p>On our servers, in San Jose, California, run by Fly.io.</p>
+<p>Your memories live in their own database directory, not as rows in a shared table with a filter on them. Another person's question cannot reach your data even in principle.</p>
+<p>The disk is encrypted under a key we hold. If that encrypted disk does not mount and check out, Eve refuses to start, rather than quietly writing your memories in plaintext.</p>
+<h2>Who can read a memory</h2>
+<p><strong>You.</strong> Always.</p>
+<p><strong>Your assistant</strong>, when you connect it. The connector can only ever reach the memories of the account that authorised it.</p>
+<p><strong>People you invite to a shared space</strong>, and only in that space. Your personal memories stay personal. Everyone can see who added what.</p>
+<p><strong>Us, operationally.</strong> We run the servers, so we can reach the data. We are not going to pretend otherwise. Two things keep that honest. Every time anyone who is not you touches your memories, it goes in a log, and you can read that log yourself. An empty log is the normal answer.</p>
+<p><strong>Not our host, except structurally.</strong> Fly runs the machine, so Fly has the access any host has to its own hardware, and that includes the key that unlocks our encryption, because Eve has to restart on its own at 3am. Eve is not end to end encrypted and we will not describe it that way.</p>
+<h2>Who else sees your words</h2>
+<p>Two companies, briefly, while a memory is being made.</p>
+<p>If you add files from Google Drive or upload files, Eve sends their text to the same model providers when it reads or indexes them.</p>
+<p><strong>Fireworks AI</strong> runs the model that turns what you said into a memory. Their terms say they do not train on it and do not keep it once they have answered. They do reserve the right to run safety checks over it, and to hold it if we ask them for support on a problem.</p>
+<p><strong>OpenAI</strong> turns memory text into the numbers that make it searchable. Their API does not train on data submitted through their API. It may keep that data for up to 30 days to check for abuse, then deletes it. We want to move this onto the same model provider so there is one company instead of two.</p>
+<p><strong>Stripe</strong> handles payment. We never see your card.</p>
+<p>Nobody else. We do not sell your data. We do not share it for advertising. No third-party analytics or session-recording tools run here. The usage events described in the privacy policy stay on our own server. We do not train models on your data and never have.</p>
+<h2>Deleting</h2>
+<p><strong>Delete a memory</strong> and Eve stops recalling it straight away. It sits in your trash so you can change your mind. That trash is yours. Eve does not read it.</p>
+<p><strong>Empty the trash</strong> and the content is gone. What remains is a note that something was forgotten, not the thing itself.</p>
+<p><strong>Ask Eve to forget a fact</strong> and it goes further. Eve removes it from every memory built on top of it, and from the three quiet places it could crawl back from: your trash, the undo copy a tidy-up pass leaves behind, and the queue of saves waiting to retry. If that takes something unrelated with it, we tell you what and why.</p>
+<p><strong>And restoring a backup does not bring it back.</strong> We keep a record of what was erased, stored outside the backup so a restore cannot delete the record along with the erasure, and we replay it. That record holds ids and a one-way hash, not the thing you asked us to forget.</p>
+<p><strong>Delete your whole account</strong> by emailing <a href="mailto:alexa@evecortex.com">alexa@evecortex.com</a>. There is no button for it yet, so we do it by hand, within 30 days. That means everything: your memories, your trash, your conversations with Eve, your settings, your usage records, your access log and your sign-in. You get a confirmation when it is done. Export first if you want a copy.</p>
+<h2>Taking it with you</h2>
+<p>Export everything as JSON and Markdown from the account menu, any time, free, including after your trial ends. That export is your memory graph. It does not yet include your chat transcript with Eve, your attachments, or your access log. Ask and we will send those.</p>
+<h2>What we do not have</h2>
+<p>No SOC 2. No ISO certification. We are a very small team and we have not been through an audit. What is above is the strongest posture we can honestly claim before one, and when the people relying on us need the audit, we will start it.</p>
+<p>No BAA, so please do not put health records in Eve.</p>
+<h2>Google Drive and Calendar</h2>
+<p>Both optional, both separate from signing in.</p>
+<p><strong>Drive:</strong> Eve can see files it made and files you hand it through Google's file picker. That is all Google's <code>drive.file</code> permission allows, and we dropped the broader one on purpose.</p>
+<p><strong>Calendar:</strong> read your calendar and write events, if you connect it.</p>
+<p>Disconnect either one whenever you like.</p>
+<h2>Questions</h2>
+<p><a href="mailto:alexa@evecortex.com">alexa@evecortex.com</a>. You reach the founder, not a queue.</p>
+</main>
+<p class="foot">The full version is the <a href="privacy.html">privacy policy</a>.</p>
+</div>
+<div style="height:64px"></div><div style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#1e2126;color:#f1efeb;font:14px/1.5 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;padding:10px 16px;text-align:center">An archived copy of evecortex.com from November 2026. Eve now runs on your Mac: <a href="../" style="color:#f1efeb;font-weight:600">download Eve for Mac</a>.</div></body>
+</html>

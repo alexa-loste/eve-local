@@ -1,0 +1,384 @@
+/* ============================================================================
+   Eve design tokens — Phase A (Route A: vanilla CSS custom properties)
+   ----------------------------------------------------------------------------
+   ONE place the look lives. Every surface, colour, space, radius, shadow and
+   type choice in the app resolves to a token defined here, so a change to the
+   look is a change to this file and nothing else.
+
+   LIGHT ONLY. The app has no app-wide dark mode today. Two .lq-* components
+   carry their own prefers-color-scheme:dark rule in index.html; they opt into
+   the `.on-dark` block at the FOOT of this file, which redefines the ink for a
+   dark ground without touching anything else. When app-wide dark mode is picked
+   up it redefines the colour tokens under a scheme selector; nothing that
+   consumes them changes.
+
+   Token VALUES are the palette already shipped (the import-flow "product design
+   system"): warm paper, near-black ink, a forest-green accent. This file makes
+   that palette nameable and consistent — it is not a visual redesign. Phase A
+   holds behaviour and look byte-for-byte; it moves where the values come from.
+   ============================================================================ */
+
+:root {
+  /* ── colour: surfaces (warm paper family, lightest → most inset) ─────────── */
+  --surface-page:    #f4f1ec;  /* body background — warm paper */
+  --surface-card:    #ffffff;  /* raised cards, the most common surface */
+  --surface-raised:  #faf9f7;  /* subtly-raised panels above the page */
+  --surface-sunken:  #f0ece4;  /* recessed wells, secondary panels */
+  --surface-muted:   #ece6db;  /* muted fills, disabled rows */
+  --surface-inset:   #e7e1d6;  /* deepest inset / hairline fills */
+
+  /* ── colour: borders ────────────────────────────────────────────────────── */
+  --border:          #e7e1d6;  /* default hairline — the app's primary border */
+  --border-strong:   #ddd5c8;  /* emphasised divider */
+  --border-subtle:   rgba(43, 40, 37, 0.08); /* faint separators on paper */
+
+  /* ── colour: ink / text (warm greys, darkest → faintest) ────────────────── */
+  --ink:             #211e19;  /* primary text */
+  --ink-secondary:   #5b554d;  /* secondary text, labels */
+  --ink-muted:       #8a827a;  /* metadata, captions */
+  --ink-faint:       #9a9893;  /* placeholders, disabled text */
+  --ink-on-accent:   #f4f1ec;  /* text on the accent fill */
+
+  /* ── colour: accent (forest green — the brand colour) ───────────────────── */
+
+  /* ── colour: semantic ───────────────────────────────────────────────────── */
+  --good-wash:       #f0f5f1;
+  --warn:            #b5673f;  /* warning — warm rust */
+  --warn-wash:       #f5e4d8;
+  --bad:             #b91c1c;  /* error / destructive */
+  --bad-wash:        #f7e7e5;
+  --info:            #5b72a8;  /* informational — muted blue */
+
+  /* ── colour: shadow base (RGB triplet, composed with alpha below) ───────── */
+  --shadow-rgb:      15, 15, 15;
+
+  /* ── type: families ─────────────────────────────────────────────────────── */
+  --font-sans:    'Mona Sans', Inter, system-ui, -apple-system, sans-serif;
+  --font-display: 'Instrument Sans', 'Mona Sans', system-ui, sans-serif;
+  --font-mono:    'Space Mono', 'Sometype Mono', ui-monospace, monospace;
+  --font-serif:   'Spectral', Georgia, serif;
+
+  /* ── type: scale ────────────────────────────────────────────────────────── */
+  --text-xs:   11px;
+  --text-sm:   12.5px;
+  --text-base: 14px;
+  --text-md:   15px;
+  --text-lg:   17px;
+  --text-xl:   20px;
+  --text-2xl:  24px;
+
+  /* ── type: weight + leading ─────────────────────────────────────────────── */
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --leading-tight:   1.2;
+  --leading-normal:  1.5;
+
+  /* ── space (4px base scale) ─────────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ── radii ──────────────────────────────────────────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-pill: 999px;
+
+  /* ── shadows (composed from --shadow-rgb) ───────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-rgb), 0.04),
+               0 1px 3px rgba(var(--shadow-rgb), 0.06);
+  --shadow-md: 0 4px 12px rgba(var(--shadow-rgb), 0.08),
+               0 10px 24px rgba(var(--shadow-rgb), 0.06);
+  --shadow-lg: 0 12px 32px rgba(var(--shadow-rgb), 0.12),
+               0 2px 8px  rgba(var(--shadow-rgb), 0.08);
+
+  /* ── z-index scale ──────────────────────────────────────────────────────── */
+  --z-base:    1;
+  --z-toolbar: 40;
+  --z-drawer:  50;
+  --z-modal:   100;
+  --z-toast:   200;
+  --z-tooltip: 300;
+}
+
+/* ============================================================================
+   Component classes — recurring surfaces, built only on the tokens above.
+   Additive and opt-in (a `ds-` prefix so nothing existing is restyled by
+   accident). A view adopts them by adding the class; the token swap that makes
+   an existing rule read from a token is done in the view's own CSS.
+   ============================================================================ */
+
+.ds-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+}
+
+.ds-panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+}
+
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-card);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.ds-btn:hover     { background: var(--surface-sunken); }
+.ds-btn:disabled  { color: var(--ink-faint); cursor: default; }
+
+.ds-btn--primary {
+  background: var(--v2-ink);
+  border-color: var(--v2-ink);
+  color: var(--ink-on-accent);
+}
+.ds-btn--primary:hover { background: var(--v2-hover); border-color: var(--v2-hover); }
+
+.ds-btn--ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-secondary);
+}
+.ds-btn--ghost:hover { background: var(--surface-sunken); color: var(--ink); }
+
+.ds-btn--danger {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--bad);
+}
+.ds-btn--danger:hover { background: var(--bad-wash); border-color: var(--bad); }
+
+.ds-input {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  color: var(--ink);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+.ds-input::placeholder { color: var(--ink-faint); }
+.ds-input:focus {
+  outline: none;
+  border-color: var(--v2-rule-mid);
+  box-shadow: 0 0 0 3px var(--v2-hover);
+}
+
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-tight);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border);
+}
+.ds-chip--accent { background: var(--v2-hover); color: var(--v2-ink); border-color: var(--v2-rule); }
+
+.ds-drawer {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
+  z-index: var(--z-drawer);
+}
+
+.ds-toolbar {
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  z-index: var(--z-toolbar);
+}
+
+/* ============================================================================
+   v2 redesign tokens — the Memory Lane "round 3 B" system alexa chose on
+   2026-09-05. Record: ~/eve-redesign/DESIGN.md.
+   ----------------------------------------------------------------------------
+   ⚠️ EVERY NAME IS PREFIXED --v2-. The record spells these --ink, --warn and so
+   on; two of those names are ALREADY DEFINED above (--ink, 102 consumers;
+   --warn, 8) and a second :root block would silently retint 110 live sites.
+   The prefix is what keeps this block invisible until a piece opts into it, and
+   it matches the `v2` Tailwind colour group in index.html. Nothing below is
+   used by any rule yet.
+   ============================================================================ */
+
+:root {
+  /* ── surfaces and ink ───────────────────────────────────────────────────── */
+  --v2-ground:    #f9f8f5;  /* page, bone, never cream */
+  --v2-paper:     #ffffff;  /* the one inset: an open memory */
+  --v2-ink:       #1e2126;  /* text; not black */
+  --v2-soft:      #5f636b;  /* secondary text, section labels */
+  --v2-faint:     #9a9ea6;  /* meta, dates, sources, disabled */
+
+  /* ── rules and hover ────────────────────────────────────────────────────── */
+  --v2-rule:      #e6e5df;  /* hairlines between rows */
+  --v2-rule-mid:  #cfcec6;  /* section rules, the ruler, inset border */
+  --v2-hover:     #f0efe9;  /* row hover */
+
+  /* ── the three meaning colours ──────────────────────────────────────────── */
+  --v2-link:      #2a5bd7;  /* every hyperlink: memory links, attachments, relations, citations */
+  --v2-eve:       #6a4fc4;  /* Eve's voice: her summary line, memories she inferred or wrote, activity */
+  --v2-warn:      #c8461c;  /* needs attention: stale, revised, superseded, overdue */
+
+  /* ── kind colours: the ICON only (plus Mindmap nodes, Atlas citations).
+        Never on text, never as a fill. ───────────────────────────────────── */
+  --v2-k-event:    #3b6fe0;
+  --v2-k-person:   #1f9d6f;
+  --v2-k-belief:   #c2452d;
+  --v2-k-topic:    #b8860b;
+  --v2-k-concept:  #6b4a1e;
+  --v2-k-place:    #0f8fa3;
+  --v2-k-document: #6b7a8f;
+  --v2-k-question: #c0399a;
+
+  /* ── type: one family, three weights ────────────────────────────────────── */
+  --v2-font: 'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+
+  /* ── radius: 0 everywhere except these three. No pills anywhere. ────────── */
+  --v2-radius-inset:  6px;   /* the open memory */
+  --v2-radius-hover:  6px;   /* row hover */
+  --v2-radius-button: 4px;   /* small buttons */
+}
+
+/* The one icon class the v2 sprite is drawn with. The sprite itself lives at
+   the top of <body> in index.html and is unused until a piece references it. */
+.v2-i {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+  vertical-align: -2px;
+}
+
+/* ============================================================================
+   Dark-surface ink — the named exception at the top of this file, given values.
+   ----------------------------------------------------------------------------
+   The app has no dark mode: the page is warm paper in every scheme. But two
+   components paint THEMSELVES dark under prefers-color-scheme: dark — the
+   activity drawer and its cards (.lq-drawer / .lq-card in index.html) — and
+   then go on inheriting the light ink. Their text landed near-black on
+   near-black: .lq-title was --ink #211e19 on a #262629 card, a contrast ratio
+   of 1.1 to 1. Invisible, and shipped that way since the drawer got a surface.
+   (Work Board 3de3c0b6, found by looking at a screenshot. No test could see it:
+   both colours are in the file, correctly spelled, and neither rule is wrong on
+   its own. It is the PAIR that fails.)
+
+   THE FIX IS NOT A :root OVERRIDE. Redefining --ink inside a dark media query
+   at :root would retint all 102 consumers on a page whose background never
+   changed, turning the whole app into pale text on paper. That is the same trap
+   the v2 header above describes for a second :root block.
+
+   So the values are scoped to an OPT-IN CLASS. A component that darkens itself
+   adds `on-dark`; everything inside it then resolves the SAME token names to
+   values that work on a dark ground, and not one consuming rule has to change —
+   .lq-title still just says `color: var(--ink)`. A component that does not
+   darken itself never carries the class and cannot be touched by this block.
+
+   Adding `on-dark` to something that stays light in dark mode is the one way to
+   misuse this. The class is a claim about the element's own background.
+   ============================================================================ */
+
+.on-dark {
+  /* Light scheme: the values the drawer already used, so carrying the class
+     changes nothing until the scheme flips. Named here rather than hard-coded
+     in the component, which is what let the pair drift apart in the first
+     place. Fills only — the ink ramp above already holds in light. */
+  --chip-fill:        rgba(0, 0, 0, .08);   /* resting pill behind a glyph */
+  --chip-fill-hover:  rgba(0, 0, 0, .16);   /* the same pill, hovered */
+  --chip-raised:      rgba(255, 255, 255, .6); /* a pill that sits ABOVE the card */
+  --chip-quiet:       rgba(0, 0, 0, .07);   /* washes and tracks, never text */
+  --chip-edge:        rgba(0, 0, 0, .10);   /* hairline on a raised pill */
+
+  /* The failed-card red. Not --bad above: this is the exact #b23a34 the drawer
+     has always used, named so it can have a dark counterpart. */
+  --danger-ink:       #b23a34;
+  --danger-wash:      rgba(178, 58, 52, .12);
+
+  /* A card that sits ON the panel (a notification row), and the hairline
+     between sections. --border above is the same #e7e1d6; it is repeated here
+     so the dark counterpart has somewhere to live. */
+  --card-raised:       #ffffff;
+  --card-raised-hover: #f7faf8;
+  --border:            #e7e1d6;
+  --border-faint:      #efeae1;
+
+  /* The progress bar's fill. The same --v2-ink it has always been, named apart
+     because on a dark ground "the text colour" is the wrong answer for it: a
+     near-white bar ends up louder than the card title it belongs to. */
+  --progress-fill:     #1e2126;
+}
+
+@media (prefers-color-scheme: dark) {
+  .on-dark {
+    /* Text, warm to match the light ramp rather than going blue-grey. Measured
+       on the card ground (#262629): 12.6, 7.3, 5.1 and 3.3 to 1. */
+    --ink:             #ece9e3;
+    --ink-secondary:   #b8b2a8;
+    --ink-muted:       #9a948a;
+    --ink-faint:       #7c766c;
+
+    /* The v2 text ramp, same job on the same ground. --v2-ink also draws the
+       progress fill, which is why it goes light rather than staying ink. */
+    --v2-ink:          #f1efeb;
+    --v2-soft:         #b0aca4;
+    --v2-faint:        #8b857c;
+
+    /* Separators and fills invert: black washes vanish on a dark ground. */
+    --border-subtle:   rgba(255, 255, 255, .10);
+    --chip-fill:       rgba(255, 255, 255, .14);
+    --chip-fill-hover: rgba(255, 255, 255, .24);
+    --chip-raised:     rgba(255, 255, 255, .10);
+    --chip-quiet:      rgba(255, 255, 255, .10);
+    --chip-edge:       rgba(255, 255, 255, .16);
+
+    /* #b23a34 is 2.6:1 on the card — a failed memory is the one card the user
+       has to act on, and its message was the dimmest text in the drawer. */
+    --danger-ink:      #f08a82;
+    --danger-wash:     rgba(240, 138, 130, .16);
+
+    /* A white notification card in a dark drawer was already wrong; with the
+       ink flipped it would have been white-on-white. Lifted off the panel by
+       alpha so it stays a card without a second hard-coded grey. */
+    --card-raised:       rgba(255, 255, 255, .06);
+    --card-raised-hover: rgba(255, 255, 255, .10);
+    --border:            rgba(255, 255, 255, .12);
+    --border-faint:      rgba(255, 255, 255, .07);
+
+    /* Clearly visible, deliberately a step below the title. */
+    --progress-fill:     #b8b2a8;
+  }
+}

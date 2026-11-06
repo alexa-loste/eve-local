@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eve — documentation</title>
+<meta name="description" content="How Eve works — the core surfaces, how to control and trust your memory, and the power-user features.">
+<link rel="canonical" href="docs.html">
+<link rel="icon" href="eve-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<!--
+  ============================================================================
+  Eve documentation page (lath scaffold, 2026-06-24). Plan: docs/eve-docs-page-plan.md
+  ----------------------------------------------------------------------------
+  COMPLETE. Structure + power-user sections by lath; core/marketing/surface
+  sections + FAQ written by sill (2026-06-24) and wired into their section ids.
+  Source copy Doc: "Eve /docs — copy by sill (all sections)" (lab-cortex card).
+  IP boundary held throughout: describes what the user gets, not kernel mechanism.
+
+  IP boundary (PUBLIC page): describe what the user GETS, never how a kernel
+  works internally. Features/views/workflows/shortcuts = safe. Consolidation /
+  synthesis / supersession / (future) gist-promotion MECHANISM = not here.
+  ============================================================================
+-->
+<style>
+  :root{
+    --bg:var(--v2-ground); --ink:var(--v2-ink);
+    --muted:var(--v2-soft); --faint:var(--v2-faint);
+    --line:var(--v2-rule); --line2:var(--v2-rule-mid);
+    /* The record drops monospace everywhere outside the connect panel, and its
+       reason for that is that the root sets tabular numerals. tokens.css does
+       NOT set them, so the numeric columns need it declared here or they lose
+       their alignment the moment the mono face goes. */
+    font-variant-numeric:tabular-nums;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; font-family:var(--v2-font); background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; line-height:1.6;}
+  a{color:var(--v2-link); text-decoration:none}
+  a:hover{text-decoration:underline}
+  a.xref{border-bottom:1px dotted var(--v2-link); }
+  a.xref:hover{text-decoration:none; border-bottom-style:solid;}
+  .serif{font-family:var(--v2-font); font-weight:700;}
+  .mono{font-family:var(--v2-font)}
+  code{font-family:var(--v2-font)}
+  pre{font-family:var(--v2-font)}
+
+  /* top bar */
+  .topbar{position:sticky; top:0; z-index:20; background:rgba(249,248,245,.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .topbar .row{max-width:1120px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:14px;}
+  .brand{display:flex; align-items:center; gap:9px; font-family:var(--v2-font); font-weight:700; color:var(--v2-ink); font-size:18px; letter-spacing:-.01em;}
+  .brand img{width:22px; height:22px}
+  .topbar .sp{flex:1}
+  .topbar .lnk{font-size:13.5px; color:var(--muted)}
+  .topbar .cta{background:var(--v2-eve); color:var(--v2-paper); border-radius:var(--v2-radius-button); padding:7px 15px; font-size:13.5px; font-weight:500;}
+  .topbar .cta:hover{background:var(--v2-ink); text-decoration:none}
+
+  /* layout: sticky TOC + content */
+  .shell{max-width:1120px; margin:0 auto; padding:0 24px; display:grid; grid-template-columns:236px 1fr; gap:46px; align-items:start;}
+  @media (max-width:880px){ .shell{grid-template-columns:1fr; gap:0} .toc{display:none} }
+  .toc{position:sticky; top:74px; padding:30px 0; max-height:calc(100vh - 74px); overflow-y:auto;}
+  .toc .h{font-family:var(--v2-font); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); margin:18px 0 7px;}
+  .toc .h:first-child{margin-top:0}
+  .toc a{display:block; font-size:13.5px; color:var(--muted); padding:4px 0; border-left:2px solid transparent; padding-left:11px; margin-left:-11px;}
+  .toc a:hover{color:var(--ink); text-decoration:none}
+  .toc a.active{color:var(--v2-link); border-left-color:var(--v2-link); font-weight:500;}
+
+  .content{padding:40px 0 96px; max-width:720px; min-width:0;}
+  .hero{padding:18px 0 30px; border-bottom:1px solid var(--line); margin-bottom:34px;}
+  .hero h1{font-family:var(--v2-font); font-weight:700; font-size:36px; letter-spacing:-.025em; margin:0 0 12px; line-height:1.12;}
+  .hero p{font-size:17px; color:var(--muted); margin:0; max-width:600px;}
+
+  section{padding:30px 0; border-top:1px solid var(--line); scroll-margin-top:74px;}
+  section:first-of-type{border-top:none}
+  section h2{font-family:var(--v2-font); font-weight:700; font-size:24px; letter-spacing:-.02em; margin:0 0 6px;}
+  section h3{font-size:16px; font-weight:600; margin:22px 0 6px;}
+  section p{font-size:15px; color:var(--v2-ink); margin:10px 0;}
+  section .kicker{font-family:var(--v2-font); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--v2-faint); margin:0 0 10px;}
+  ul{padding-left:20px} li{font-size:15px; color:var(--v2-ink); margin:6px 0; line-height:1.55}
+
+
+  ol.steps{padding-left:22px; margin:12px 0;} ol.steps li{margin:9px 0; line-height:1.6;} ol.steps code{white-space:pre-wrap; overflow-wrap:anywhere;}
+  .setup-command{display:flex; align-items:stretch; gap:8px; max-width:100%; margin-top:4px;}
+  .setup-command code{flex:1; min-width:0; white-space:pre-wrap; overflow-wrap:anywhere;}
+  .setup-command button{flex:none;}
+  #setup-pointer{max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; font-family:var(--v2-font);}
+  .faq-item{border-top:1px solid var(--line); padding:16px 0;}
+  .faq-item:first-of-type{border-top:none;}
+  .faq-q{font-weight:600; color:var(--ink); font-size:15px; margin-bottom:5px;}
+  .faq-item p{margin:0;}
+
+  table.kbd{width:100%; border-collapse:collapse; margin:12px 0; font-size:14px;}
+  table.kbd td{padding:7px 4px; border-bottom:1px solid var(--line);}
+  table.kbd td.k{text-align:right; white-space:nowrap; width:1%;}
+  kbd{font-family:var(--v2-font); font-size:12px; background:var(--v2-hover); border:1px solid var(--line2); border-bottom-width:2px; border-radius:var(--v2-radius-button); padding:2px 7px; color:var(--muted);}
+  .feat{border-top:1px solid var(--line); padding:12px 0;}
+  .feat .fn{font-weight:600; font-size:14.5px;}
+  .feat .fg{font-size:11.5px; color:var(--faint); font-family:var(--v2-font); text-transform:uppercase; letter-spacing:.06em; margin-left:6px;}
+  .feat .fd{font-size:13.5px; color:var(--muted); margin-top:2px;}
+
+  .faq dt{font-weight:600; font-size:15.5px; margin:18px 0 4px;}
+  .faq dd{margin:0; font-size:14.5px; color:var(--v2-ink);}
+  footer{border-top:1px solid var(--line); margin-top:40px; padding:26px 0; color:var(--faint); font-size:13px; display:flex; gap:16px; flex-wrap:wrap;}
+</style>
+<!-- FAQPage structured data: mirrors the #faq section below word for word. tests/test_discoverability.py fails if they differ. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does Eve see my whole conversation?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Eve isn't a second AI reading along with you. Your assistant decides what's worth remembering and passes just those memories to Eve to store and retrieve — Eve works with the memories, not your full transcript."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What does it cost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Eve is built to be cheap to run, because your own assistant does the expensive thinking and Eve only does the lightweight memory work. There's a free tier to get started, with paid tiers for heavier use — priced to sit comfortably alongside the AI subscription you already pay for, not to double it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which assistants does it work with?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Any assistant that supports custom connectors — Claude and ChatGPT today. Because Eve connects from the outside rather than living inside one model, the same memory works across all of them at once."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is my data private? Who can see it?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "You, and the assistant you connect. Eve stores only what you let Eve keep, everything Eve holds is visible to you, and you can remove anything at any time."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I leave and take my data?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Always. Export everything as JSON and Markdown, free, whenever you want. No lock-in — portability is the point."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What's the difference between Memory Lane, Mindmap, Atlas, and Board?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Four views of the same memory, at different altitudes. Memory Lane is what happened, in order. Mindmap is how everything connects. Atlas is where things stand now, synthesized into chapters. Board is your projects, as they move through stages."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I have to use any of the power-user features?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Everything works out of the box, and the views fill in on their own as you talk. The keyboard shortcuts, tuning dials, and optional features are there when you want them, and stay out of the way until you do."
+      }
+    }
+  ]
+}
+</script>
+</head>
+<body>
+  <div class="topbar"><div class="row">
+    <a class="brand" href="./"><img src="eve-mark.svg" alt="">eve</a>
+    <span class="mono" style="font-size:11px; color:var(--faint); letter-spacing:.1em; text-transform:uppercase;">docs</span>
+    <span class="sp"></span>
+    <a class="lnk" href="about.html">About</a>
+    <a class="lnk" href="patches.html">What’s new</a>
+    <a class="cta" href="./">Open Eve →</a>
+  </div></div>
+
+  <div class="shell">
+    <!-- Sticky table of contents -->
+    <nav class="toc" id="toc">
+      <div class="h">Start</div>
+      <a href="#idea">The one idea</a>
+      <a href="#getting-started">Getting started</a>
+      <a href="#how-memories-form">How memories form</a>
+      <div class="h">The surfaces</div>
+      <a href="#memory-lane">Memory Lane</a>
+      <a href="#mindmap">Mindmap</a>
+      <a href="#atlas">Atlas</a>
+      <a href="#board">Board</a>
+      <a href="#cortexes">Cortexes</a>
+      <div class="h">Control &amp; trust</div>
+      <a href="#shaping">Seeing &amp; shaping memory</a>
+      <a href="#consolidation">Consolidation &amp; upkeep</a>
+      <a href="#your-data">Your data</a>
+      <div class="h">Power user</div>
+      <a href="#shortcuts">Keyboard shortcuts</a>
+      <a href="#tuning">Memory tuning</a>
+      <a href="#optional-features">Optional features</a>
+      <a href="#surfaces-grow">Surfaces that grow</a>
+      <div class="h">More</div>
+      <a href="#faq">FAQ</a>
+    <div class="h">More</div>
+      <a href="#chat">Chat</a>
+      <a href="#settings">Settings</a>
+      <a href="#apps">Where Eve can reach</a>
+      <a href="#import">Import your history</a>
+    </nav>
+
+    <main class="content">
+      <div class="hero">
+        <h1 class="serif">How Eve works</h1>
+        <p>Eve is a portable memory layer for the AI you already use. This is the guide to what
+        lives where, how to keep your memory shaped the way you want, and the power-user
+        features once you want to go deeper.</p>
+      </div>
+
+      <!-- ============ A. CORE — WHAT EVE IS ============ -->
+      <section id="idea">
+        <div class="kicker">The one idea</div>
+        <h2 class="serif">A memory layer your own assistant talks to</h2>
+        <p>Eve is a memory layer — a private place that stores what matters and plugs into the AI you
+        already use. You don't switch to Eve or chat with Eve instead of your assistant; you connect Eve
+        to the assistant you already have (Claude, ChatGPT, anything that supports custom connectors),
+        and from then on it remembers. Across every conversation, every new chat you spin up, you never
+        have to repeat yourself.</p>
+        <p>The key idea is that your assistant does the thinking, and Eve does the remembering. When you
+        talk, your own model decides what's worth keeping and when to recall it — the expensive
+        reasoning runs on the subscription you already pay for. Eve only does the cheap part: storing
+        those memories and handing them back when they're needed. That's what keeps Eve affordable and
+        private — Eve isn't a second AI reading over your shoulder, Eve's a memory your AI reaches into.</p>
+        <p>And because Eve rides in through a connector rather than living inside any one model, the same
+        memory works everywhere. Connect Eve to Claude and ChatGPT both, and they draw on the same
+        memory — plan something in one, pick it up in the other. Your memory belongs to you and travels
+        with you, instead of being locked inside whichever assistant you happened to use.</p>
+      </section>
+
+      <section id="getting-started">
+        <div class="kicker">Getting started</div>
+        <h2 class="serif">Connect your assistant</h2>
+        <p>Connecting Eve takes about a minute. Use the path for the assistant you use.</p>
+
+        <h3>Claude chat (claude.ai, desktop, or mobile)</h3>
+        <ol class="steps">
+          <li>Add a custom connector at <b>Customize → Connectors → Add custom connector</b>.</li>
+          <li>Paste <code>https://eve-product.fly.dev/eve-mcp/mcp</code> and complete sign-in.</li>
+          <li>Paste the pointer below into <b>Instructions for Claude</b>, or a Project's instructions.</li>
+        </ol>
+
+        <h3>Claude Code</h3>
+        <ol class="steps">
+          <li>Add Eve to every project:<div class="setup-command"><code>claude mcp add --transport http eve https://eve-product.fly.dev/eve-mcp/mcp --scope user</code><button type="button" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button></div></li>
+          <li>In a Claude Code session, run <code>/mcp</code>, choose <b>eve</b>, then click <b>Authenticate</b> and sign in to Eve.</li>
+          <li>Put the pointer in the global file Claude Code loads every session:<div class="setup-command"><code>mkdir -p ~/.claude &amp;&amp; curl -fsSL https://evecortex.com/api/orienting_prompt &gt;&gt; ~/.claude/CLAUDE.md</code><button type="button" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button></div></li>
+        </ol>
+
+        <h3>Codex in the ChatGPT desktop app</h3>
+        <ol class="steps">
+          <li>Click <b>Settings</b>.</li>
+          <li>Click <b>Plugins</b>.</li>
+          <li>Open the <b>MCPs</b> tab.</li>
+          <li>Click <b>Add</b>.</li>
+          <li>Choose <b>MCP server</b>.</li>
+          <li>Set the name to <b>eve</b>.</li>
+          <li>Choose <b>Streamable HTTP</b>.</li>
+          <li>Paste <code>https://eve-product.fly.dev/eve-mcp/mcp</code> into URL. Leave the token and header fields empty.</li>
+          <li>Click <b>Save</b>.</li>
+          <li>Restart the ChatGPT desktop app.</li>
+          <li>On the <b>eve</b> row, click <b>Authenticate</b>.</li>
+          <li>In the browser that opens, sign in with Google.</li>
+        </ol>
+
+        <h3>Codex CLI</h3>
+        <ol class="steps">
+          <li>Add Eve to the shared Codex configuration:<div class="setup-command"><code>codex mcp add eve --url https://eve-product.fly.dev/eve-mcp/mcp</code><button type="button" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button></div></li>
+          <li>Sign in to Eve:<div class="setup-command"><code>codex mcp login eve</code><button type="button" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button></div></li>
+          <li>On a Mac with only the desktop app, <code>codex</code> is not on PATH. Use <code>/Applications/ChatGPT.app/Contents/Resources/codex</code>.</li>
+          <li>Put the pointer in the global file Codex loads every session:<div class="setup-command"><code>mkdir -p ~/.codex &amp;&amp; curl -fsSL https://evecortex.com/api/orienting_prompt &gt;&gt; ~/.codex/AGENTS.md</code><button type="button" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)">Copy</button></div></li>
+        </ol>
+
+        <p>These public commands use Eve's generic pointer. When you're signed in, the Connect card in Eve has a personal version containing your preference sentences. Prefer to copy the generic pointer by hand? Put this same text in the file named above:</p>
+        <pre id="setup-pointer">Eve is my long-term memory, connected to you as a tool (the Eve connector). At the start of each session, ask me whether to use my Eve memory and, if so, which cortex — then follow Eve's own instructions: recall from it before answering, and remember what's worth keeping as we go.</pre>
+        <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('setup-pointer').textContent)">Copy pointer</button>
+        <p>That's it. From here on you can also simply ask — "remember that for me," or "save this
+        to my Eve memory" — and it'll be kept the moment it matters. Works the same way in Claude
+        and ChatGPT.</p>
+      </section>
+
+      <section id="how-memories-form">
+        <div class="kicker">How memories form</div>
+        <h2 class="serif">Automatic, or whenever you ask</h2>
+        <p>By default, Eve encodes memories automatically, roughly every six turns of conversation — you
+        don't have to do anything for it to work. You can change that pace, or switch to saving only
+        when you ask, anytime in Settings (see Tuning).</p>
+        <p>And you never have to wait for the automatic pass. Whenever something matters in the moment,
+        just tell your assistant — "remember that for me," or "save this to my Eve memory" — and it's
+        encoded right then.</p>
+        <p>Want to see it work? In your first couple of turns, tell your assistant a fact about yourself
+        and ask it to remember. Then watch it appear here on the dashboard within moments.</p>
+      </section>
+
+      <!-- ============ B. CORE — THE SURFACES ============ -->
+      <section id="memory-lane">
+        <div class="kicker">Surface · episodic</div>
+        <h2 class="serif">Memory Lane</h2>
+        <p class="how"><b>Open it:</b> <code>#lane</code><br>On a computer: Click **Memory Lane** in the top bar.<br>On a phone: Tap the view switcher in the top bar, then **Memory Lane**.</p>
+        <p class="how"><b>What you can do there:</b> Read memories newest-first, open one for its full text and sources, pin, edit or delete it, and search by word or by ⟨id⟩.</p>
+        <p>Memory Lane is everything Eve remembers, newest first. As you and your assistant talk, each
+        thing worth keeping lands here as a memory card — so you can read back exactly what Eve's
+        holding, in the order it happened.</p>
+        <p>It's also where you shape it. Every card is yours to act on: approve what Eve got right, correct
+        what Eve didn't, and pin anything that must never be forgotten. When something is active but not
+        what you're working on right this minute, set it aside — and pull it back whenever you need it.
+        Nothing is ever stuck. And if Eve hasn't captured something, you can add a memory yourself, any
+        time.</p>
+      </section>
+
+      <section id="mindmap">
+        <div class="kicker">Surface · associative</div>
+        <h2 class="serif">Mindmap</h2>
+        <p class="how"><b>Open it:</b> <code>#map</code><br>On a computer: Click **Mindmap** in the top bar.<br>On a phone: Tap the view switcher in the top bar, then **Mindmap**.</p>
+        <p class="how"><b>What you can do there:</b> See how memories connect, join nodes that belong together, edit what a node holds, or let one go.</p>
+        <p>The Mindmap is your memory as a picture of how it all connects. The people, events, ideas, and
+        places you talk about appear as nodes, and Eve draws the links between them — so you can see not
+        just what Eve remembers, but how it relates: who's connected to what, which ideas sit near each
+        other, what threads run through your life and work.</p>
+        <p>Nodes are colored by kind, and the brighter ones are what's active right now. You can shape the
+        graph directly, too: connect nodes that belong together, edit what a node holds, or let one go.
+        It fills in on its own as you talk — there's nothing to set up.</p>
+      </section>
+
+      <section id="atlas">
+        <div class="kicker">Surface · semantic</div>
+        <h2 class="serif">Atlas — where things stand</h2>
+        <p class="how"><b>Open it:</b> <code>#atlas</code><br>On a computer: Click **Atlas** in the top bar.<br>On a phone: Tap the view switcher in the top bar, then **Atlas**.</p>
+        <p class="how"><b>What you can do there:</b> Read where things stand chapter by chapter, with the memories each chapter was written from named as its sources.</p>
+        <p>If Memory Lane is what happened, in order, and the Mindmap is what connects to what, Atlas is
+        the third altitude: where things stand right now. As your memory grows, Eve folds it into
+        themes, and each theme becomes a chapter — a plain-language synthesis of what's true now,
+        written like a wiki article about your own life and work.</p>
+        <p>What makes Atlas trustworthy is that it isn't a free-floating summary you have to take on faith.
+        Every statement cites the memory cards it's drawn from — timestamped and clickable — so you can
+        always check a chapter against its sources. It's time-aware, too: when something has changed,
+        Atlas shows what's true now, with the older version one expand away ("this replaced…"), so it
+        reads like a wiki that remembers its own history. The point isn't just the summary; it's a
+        summary you can audit, trace, and trust.</p>
+        <p>You'll find chapters laid out in a table of contents, each one cross-linked to related themes,
+        with a Refresh whenever you want the latest.</p>
+      </section>
+
+      <section id="board">
+        <div class="kicker">Surface · projects</div>
+        <h2 class="serif">Board</h2>
+        <p class="how"><b>Open it:</b> <code>#board</code><br>On a computer: Click **Board** in the top bar.<br>On a phone: Tap the view switcher in the top bar, then **Board**.</p>
+        <p class="how"><b>What you can do there:</b> See projects and their status, open one for its tasks, and follow a task back to the memory it came from.</p>
+        <p>Board is your projects, as they move. A project gathers related memories into a piece of work,
+        and the Board shows where each one stands — from Backlog, to In progress, to In review, to Done
+        — as a lane each, the way a Kanban board works. Cards move across the lanes as the work moves.
+        Projects can form on their own, as Eve notices work taking shape across your memories, or you
+        can start one yourself.</p>
+        <p>Click into a project and you'll see its stage, the memories gathered under it, and — this is the
+        part that matters — a link to where the editable work actually lives. Because Eve is a memory
+        layer, Eve deliberately doesn't try to be your editor. Your documents stay where they are: your
+        Google Docs, your assistant's artifacts, wherever the real work happens. Eve points at the
+        editable surface; Eve doesn't replace it.</p>
+        <p>What Eve adds is legibility and good defaults. The status of each project is a shared,
+        glanceable signal of where things are and what kind of collaboration they're ready for. Each
+        stage carries a gentle nudge toward the right working habit — keep work-in-progress in an
+        editable, suggest-mode surface, rather than shipping a finished, locked artifact before it's
+        ready — guidance, never enforcement. And some lanes have a soft limit on how much can sit there
+        at once, so the Board nudges you when work piles up instead of flowing. The whole idea is to
+        make the work-in-progress stream more usable by default: legible, hand-markable, and keeping you
+        in the loop where your judgment matters most.</p>
+      </section>
+
+      <section id="cortexes">
+        <div class="kicker">Organizing</div>
+        <h2 class="serif">Cortexes</h2>
+        <p class="how"><b>Open it:</b> <code>#settings</code><br>On a computer: Click the gear, then **Cortexes**.<br>On a phone: Tap the gear, then **Cortexes**.</p>
+        <p class="how"><b>What you can do there:</b> Create a cortex, rename one, archive one, or switch which cortex you are looking at.</p>
+        <p>A cortex is a separate area of memory, kept apart from the others. Keep work in one and personal
+        life in another; keep a single client, project, or side of your life in its own cortex, so
+        things don't bleed together.</p>
+        <p>You don't need a separate connection for each one. A single connection reaches all your cortexes
+        — your assistant just needs to know which one you mean for a given conversation. Open with a
+        line like "use my [name] cortex for this," and everything you save and recall in that
+        conversation lands in the right place. Same connector URL, same instructions, every cortex — one
+        connection, as many cortexes as you keep.</p>
+      </section>
+
+      <!-- ============ C. CONTROL & TRUST ============ -->
+      <section id="shaping">
+        <div class="kicker">Control &amp;amp; trust</div>
+        <h2 class="serif">Seeing &amp;amp; shaping your memory</h2>
+        <p>The whole promise of Eve is memory you can see, shape, and trust — and that's not a slogan, it's
+        a set of concrete controls. Everything Eve holds is visible to you, and everything is yours to
+        adjust.</p>
+        <p>When Eve records or infers something, you decide whether it stands: approve what's right,
+        correct what's off, and pin the things that must never be forgotten. Set aside what's not
+        relevant right now, and restore it when it is. Nothing Eve keeps is hidden from you, and nothing
+        is beyond your reach to change.</p>
+        <p>And because memory changes over time, Eve keeps track of what replaced what. When a belief is
+        superseded — you moved cities, changed roles, switched tools — Eve shows what's true now, with
+        the older version still there to see, one expand away. You're never guessing whether Eve's
+        working from something out of date. You can look, and you can fix it.</p>
+      </section>
+
+      <section id="consolidation">
+        <div class="kicker">Control &amp;amp; trust</div>
+        <h2 class="serif">Consolidation &amp;amp; upkeep</h2>
+        <p>Memory only stays useful if it stays coherent, so Eve periodically tidies what Eve holds —
+        clearing clutter, removing duplicates, merging the same person recorded twice, and grouping
+        related beliefs so they're easier to navigate. It's the housekeeping that keeps a growing memory
+        legible instead of becoming a pile.</p>
+        <p>You stay in control of all of it. Every bit of upkeep is reversible — keep what you like, undo
+        what you don't — and you can run a full pass over your cortex yourself, any time, from Settings.</p>
+      </section>
+
+      <section id="your-data">
+        <div class="kicker">Control &amp;amp; trust</div>
+        <h2 class="serif">Your data is yours</h2>
+        <p>Your memory belongs to you, completely — and you can take it with you whenever you want. Export
+        everything, always free, as both JSON and Markdown. There's no lock-in, by design: portability
+        is the entire point, and your memory is meant to travel with you across models, not be held
+        hostage by any one of them.</p>
+        <p>Privacy works the same way. Your assistant does the reasoning; Eve stores only what you let Eve
+        keep, and everything Eve holds is visible to you — there to see, and there to remove. Nothing is
+        kept where you can't reach it.</p>
+      </section>
+
+      <!-- ============ D. POWER USER (lath-owned; real content) ============ -->
+      <section id="shortcuts">
+        <div class="kicker">Power user</div>
+        <h2 class="serif">Keyboard shortcuts</h2>
+        <p>Everything works without them, but the whole platform is keyboard-navigable. Press
+        <kbd>?</kbd> anywhere to see this list in the app. Sequences are vim-style (<kbd>g</kbd>
+        then <kbd>m</kbd>); bare keys never fire while you're typing.</p>
+        <table class="kbd">
+          <tr><td>Go to Chat / Mindmap / Memory Lane / Atlas / Board</td><td class="k"><kbd>g</kbd> then <kbd>c</kbd>/<kbd>m</kbd>/<kbd>l</kbd>/<kbd>a</kbd>/<kbd>b</kbd></td></tr>
+          <tr><td>Next / previous view</td><td class="k"><kbd>]</kbd> / <kbd>[</kbd></td></tr>
+          <tr><td>Atlas — next / previous chapter, refresh</td><td class="k"><kbd>j</kbd> / <kbd>k</kbd> / <kbd>r</kbd></td></tr>
+          <tr><td>Mindmap — edit mode, re-run layout, connect 2 nodes, forget</td><td class="k"><kbd>e</kbd> / <kbd>r</kbd> / <kbd>c</kbd> / <kbd>Delete</kbd></td></tr>
+          <tr><td>Memory Lane — add a memory</td><td class="k"><kbd>a</kbd></td></tr>
+          <tr><td>Board — add a project</td><td class="k"><kbd>a</kbd></td></tr>
+          <tr><td>Search memories</td><td class="k"><kbd>⌘</kbd>/<kbd>Ctrl</kbd> <kbd>F</kbd></td></tr>
+          <tr><td>Shortcuts &amp; power features</td><td class="k"><kbd>?</kbd></td></tr>
+        </table>
+      </section>
+
+      <section id="tuning">
+        <div class="kicker">Power user</div>
+        <h2 class="serif">Memory tuning</h2>
+        <p>In the <kbd>?</kbd> panel — the dials for how Eve behaves:</p>
+        <ul>
+          <li><b>How often Eve forms memories</b> — automatically every few exchanges, or only when you ask.</li>
+          <li><b>Protect recent turns through consolidation</b> — keep the last few turns word-for-word (shown on accounts that have web chat).</li>
+          <li><b>When to consolidate</b> — the context size Eve aims to stay under before suggesting a consolidation.</li>
+        </ul>
+      </section>
+
+      <section id="optional-features">
+        <div class="kicker">Power user</div>
+        <h2 class="serif">Optional features</h2>
+        <p>Off by default, toggled in the <kbd>?</kbd> panel — they stay out of the main flow until you switch them on.</p>
+        <div class="feat"><span class="fn">Always expand history</span><span class="fg">Atlas</span><div class="fd">Open every "superseded — what this replaced" disclosure automatically.</div></div>
+        <div class="feat"><span class="fn">Always expand loose cards</span><span class="fg">Atlas</span><div class="fd">Show every card in Atlas' Miscellaneous chapter without the "show all" step.</div></div>
+        <div class="feat"><span class="fn">Compact density</span><span class="fg">Atlas</span><div class="fd">Tighten spacing in Atlas articles to fit more on screen.</div></div>
+        <div class="feat"><span class="fn">Reduce motion</span><span class="fg">Interface</span><div class="fd">Disable animations and smooth scrolling across the app.</div></div>
+      </section>
+
+      <section id="surfaces-grow">
+        <div class="kicker">Power user</div>
+        <h2 class="serif">Surfaces that grow with you</h2>
+        <p>Every view is always there, but a view with nothing in it yet shows a preview of what will live
+        there and fills in on its own as your memory grows. A brand-new account lands straight in the
+        dashboard — no wall — with a one-line nudge to connect your assistant.</p>
+      </section>
+
+      <!-- ============ E. FAQ ============ -->
+      <section id="faq">
+        <div class="kicker">More</div>
+        <h2 class="serif">FAQ</h2>
+        <div class="faq-item">
+          <div class="faq-q">Does Eve see my whole conversation?</div>
+          <p>No. Eve isn't a second AI reading along with you. Your assistant decides what's worth
+          remembering and passes just those memories to Eve to store and retrieve — Eve works with
+          the memories, not your full transcript.</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">What does it cost?</div>
+          <p>Eve is built to be cheap to run, because your own assistant does the expensive thinking
+          and Eve only does the lightweight memory work. There's a free tier to get started, with
+          paid tiers for heavier use — priced to sit comfortably alongside the AI subscription you
+          already pay for, not to double it.</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Which assistants does it work with?</div>
+          <p>Any assistant that supports custom connectors — Claude and ChatGPT today. Because Eve
+          connects from the outside rather than living inside one model, the same memory works
+          across all of them at once.</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Is my data private? Who can see it?</div>
+          <p>You, and the assistant you connect. Eve stores only what you let Eve keep, everything
+          Eve holds is visible to you, and you can remove anything at any time.</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Can I leave and take my data?</div>
+          <p>Always. Export everything as JSON and Markdown, free, whenever you want. No lock-in —
+          portability is the point.</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">What's the difference between Memory Lane, Mindmap, Atlas, and Board?</div>
+          <p>Four views of the same memory, at different altitudes. Memory Lane is what happened, in
+          order. Mindmap is how everything connects. Atlas is where things stand now, synthesized
+          into chapters. Board is your projects, as they move through stages.</p>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Do I have to use any of the power-user features?</div>
+          <p>No. Everything works out of the box, and the views fill in on their own as you talk.
+          The keyboard shortcuts, tuning dials, and optional features are there when you want them,
+          and stay out of the way until you do.</p>
+        </div>
+      </section>
+
+      <section id="chat">
+        <div class="kicker">Surface · conversation</div>
+        <h2 class="serif">Chat</h2>
+        <p class="how"><b>Open it:</b> <code>#chat</code><br>On a computer: Click **Chat** in the top bar.<br>On a phone: Tap the view switcher in the top bar, then **Chat**.</p>
+        <p class="how"><b>What you can do there:</b> Talk to Eve on the website itself.</p>
+        <p>Chat is Eve on the website. Most people reach Eve through their own assistant instead; this is
+        here for when you want to talk to the memory directly. Not every cortex has it — a memory whose
+        conversation lives in your own assistant will say so.</p>
+      </section>
+
+      <section id="settings">
+        <div class="kicker">Place · your account</div>
+        <h2 class="serif">Settings</h2>
+        <p class="how"><b>Open it:</b> <code>#settings</code><br>On a computer: Click the gear, top right.<br>On a phone: Tap the gear, top right.</p>
+        <p class="how"><b>What you can do there:</b> Change how memory behaves, import your history, connect your assistant, see your activity, manage cortexes.</p>
+        <p>Settings is reached from the gear and is deliberately not one of the four ways of looking at
+        your memory, which is why it does not sit in the view switcher.</p>
+      </section>
+
+      <section id="apps">
+        <div class="kicker">Place · connections</div>
+        <h2 class="serif">Where Eve can reach</h2>
+        <p class="how"><b>Open it:</b> <code>#settings/apps</code><br>On a computer: Click the gear, then scroll to **WHERE EVE CAN REACH**.<br>On a phone: Tap the gear, then scroll to **WHERE EVE CAN REACH**.</p>
+        <p class="how"><b>What you can do there:</b> Connect Google Calendar, Google Drive or GitHub, or open your Documents.</p>
+        <p>Connecting Google Calendar starts at /auth/connect/calendar. Eve reads your upcoming events and
+        only writes one when you ask and confirm first. Which rows appear depends on your cortex.</p>
+      </section>
+
+      <section id="import">
+        <div class="kicker">Place · bringing things in</div>
+        <h2 class="serif">Import your history</h2>
+        <p class="how"><b>Open it:</b> <code>#import</code><br>On a computer: Click the gear, then **Import your history**.<br>On a phone: Tap the gear, then **Import your history**.</p>
+        <p class="how"><b>What you can do there:</b> Upload an export from ChatGPT, Claude or Gemini, choose what to bring in, review every memory before it is saved.</p>
+        <p>Import reads an export you already have. Nothing is read by a model until you say so, and
+        nothing enters your memory until you have reviewed it.</p>
+      </section>
+
+      <footer>
+        <span>Eve · memory you can see, shape, and trust</span>
+        <a href="./">Open Eve</a>
+        <a href="about.html">About</a>
+        <a href="patches.html">What’s new</a>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // Scroll-spy: highlight the current section in the TOC.
+    (function(){
+      var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+      var byId = {};
+      links.forEach(function(a){ byId[a.getAttribute('href').slice(1)] = a; });
+      var obs = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){
+          if(e.isIntersecting){
+            links.forEach(function(a){ a.classList.remove('active'); });
+            var a = byId[e.target.id]; if(a) a.classList.add('active');
+          }
+        });
+      }, { rootMargin:'-72px 0px -70% 0px', threshold:0 });
+      document.querySelectorAll('section[id]').forEach(function(s){ obs.observe(s); });
+    })();
+
+    // Cross-reference auto-linker: when one section's prose names another surface,
+    // turn the FIRST mention into a jump-link to that section — so the docs are
+    // navigable, not one long scroll. Skips a section's own name, text already
+    // inside a link, and headings/kickers (only <p>/<li>). First occurrence per
+    // surface per section; matches are applied right-to-left within a text node so
+    // two refs in one sentence (e.g. Atlas's "Memory Lane … the Mindmap") both link.
+    (function(){
+      var SURFACES = [
+        { id:'memory-lane', name:'Memory Lane' },
+        { id:'mindmap',     name:'Mindmap' },
+        { id:'atlas',       name:'Atlas' },
+        { id:'board',       name:'Board' },
+        { id:'cortexes',    name:'Cortexes' }
+      ];
+      function isLetter(c){ return /[A-Za-z]/.test(c); }
+      function processNode(tn, terms){
+        var v = tn.nodeValue, hits = [];
+        terms.forEach(function(t){
+          if (t.done) return;
+          var idx = v.indexOf(t.name);
+          if (idx === -1) return;
+          var before = idx === 0 ? '' : v.charAt(idx - 1);
+          var after = v.charAt(idx + t.name.length);
+          if (isLetter(before) || isLetter(after)) return; // whole-word only
+          hits.push({ t:t, idx:idx });
+        });
+        hits.sort(function(a,b){ return b.idx - a.idx; }); // right-to-left keeps idx valid
+        hits.forEach(function(h){
+          if (h.t.done) return;
+          var mid = tn.splitText(h.idx);
+          mid.splitText(h.t.name.length);
+          var a = document.createElement('a');
+          a.href = '#' + h.t.id; a.className = 'xref'; a.textContent = h.t.name;
+          mid.parentNode.replaceChild(a, mid);
+          h.t.done = true;
+        });
+      }
+      document.querySelectorAll('section[id]').forEach(function(sec){
+        var terms = SURFACES.filter(function(s){ return s.id !== sec.id; })
+                            .map(function(s){ return { id:s.id, name:s.name, done:false }; });
+        sec.querySelectorAll('p, li').forEach(function(el){
+          var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, {
+            acceptNode: function(n){
+              if (!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+              var p = n.parentNode;
+              while (p && p !== el){ if (p.tagName === 'A') return NodeFilter.FILTER_REJECT; p = p.parentNode; }
+              return NodeFilter.FILTER_ACCEPT;
+            }
+          });
+          var nodes = [], n; while ((n = walker.nextNode())) nodes.push(n);
+          nodes.forEach(function(tn){ processNode(tn, terms); });
+        });
+      });
+    })();
+  </script>
+<div style="height:64px"></div><div style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#1e2126;color:#f1efeb;font:14px/1.5 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;padding:10px 16px;text-align:center">An archived copy of evecortex.com from November 2026. Eve now runs on your Mac: <a href="../" style="color:#f1efeb;font-weight:600">download Eve for Mac</a>.</div></body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eve — what’s new</title>
+<meta name="description" content="Recent updates to Eve — newest first. A quick way to catch up on what changed since you were last here.">
+<link rel="canonical" href="patches.html">
+<meta property="og:url" content="https://evecortex.com/patches.html">
+<link rel="icon" href="eve-mark.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mona+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!--
+  Public changelog page (lath, 2026-06-24). Renders from patches.js — the single
+  source of truth shared with the in-app "✨ What's new" overlay (index.html).
+  To ship a new patch, add ONE entry at the top of EVE_PATCHES in patches.js;
+  both this page and the in-app overlay pick it up. No copy lives here.
+  IP boundary (PUBLIC page): describe what the user GETS, never kernel mechanism.
+-->
+<style>
+  :root{
+    --bg:#f4f1ec; --panel:#fff; --ink:#211e19; --muted:#7b7568; --faint:#aaa295;
+    --line:#e7e1d6; --line2:#ddd5c8; --accent:#2f5d4a; --accent-d:#244a3a;
+    --sage:#5e8d6b; --warm:#b5673f;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; font-family:'Mona Sans','Inter',system-ui,sans-serif; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased; line-height:1.6;}
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .mono{font-family:'Space Mono',monospace}
+
+  .topbar{position:sticky; top:0; z-index:20; background:rgba(244,241,236,.88); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  .topbar .row{max-width:1120px; margin:0 auto; padding:12px 24px; display:flex; align-items:center; gap:14px;}
+  .brand{display:flex; align-items:center; gap:9px; font-weight:700; font-size:18px; letter-spacing:-.01em;}
+  .brand img{width:22px; height:22px}
+  .topbar .sp{flex:1}
+  .topbar .lnk{font-size:13.5px; color:var(--muted)}
+  .topbar .cta{background:var(--accent); color:#fff; border-radius:9px; padding:7px 15px; font-size:13.5px; font-weight:500;}
+  .topbar .cta:hover{background:var(--accent-d); text-decoration:none}
+
+  .wrap{max-width:720px; margin:0 auto; padding:0 24px;}
+  .hero{padding:46px 0 30px; border-bottom:1px solid var(--line); margin-bottom:10px;}
+  .hero h1{font-weight:700; font-size:36px; letter-spacing:-.025em; margin:0 0 12px; line-height:1.12;}
+  .hero p{font-size:17px; color:var(--muted); margin:0; max-width:560px;}
+
+  .feed{padding:24px 0 96px;}
+  .patch{padding:26px 0; border-top:1px solid var(--line); display:grid; grid-template-columns:120px 1fr; gap:24px; align-items:start;}
+  .patch:first-child{border-top:none}
+  @media (max-width:640px){ .patch{grid-template-columns:1fr; gap:8px} }
+  .patch .when{font-family:'Space Mono',monospace; font-size:11.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--faint); padding-top:3px;}
+  .patch .title{font-weight:700; font-size:19px; letter-spacing:-.015em; margin:0 0 8px;}
+  .patch ul{padding-left:18px; margin:0;}
+  .patch li{font-size:15px; color:#33302b; margin:7px 0; line-height:1.55;}
+
+  footer{border-top:1px solid var(--line); margin-top:10px; padding:26px 0; color:var(--faint); font-size:13px; display:flex; gap:16px; flex-wrap:wrap;}
+</style>
+</head>
+<body>
+  <div class="topbar"><div class="row">
+    <a class="brand" href="./"><img src="eve-mark.svg" alt="">eve</a>
+    <span class="mono" style="font-size:11px; color:var(--faint); letter-spacing:.1em; text-transform:uppercase;">what’s new</span>
+    <span class="sp"></span>
+    <a class="lnk" href="about.html">About</a>
+    <a class="lnk" href="docs.html">Docs</a>
+    <a class="cta" href="./">Open Eve →</a>
+  </div></div>
+
+  <div class="wrap">
+    <div class="hero">
+      <h1>What’s new</h1>
+      <p>Recent updates to Eve — newest first. A quick way to catch up on what changed since you were last here.</p>
+    </div>
+    <div class="feed" id="feed"></div>
+    <footer>
+      <span>Eve · memory you can see, shape, and trust</span>
+      <a href="about.html">About</a>
+      <a href="docs.html">Documentation</a>
+      <a href="./">Open Eve</a>
+    </footer>
+  </div>
+
+  <!-- ?v=2: see the note in index.html. The server revalidates this file now. -->
+  <script src="patches.js"></script>
+  <script>
+    (function(){
+      function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+      var feed = document.getElementById('feed');
+      var patches = window.EVE_PATCHES || [];
+      if (!patches.length){ feed.innerHTML = '<p style="color:#7b7568">No updates yet.</p>'; return; }
+      feed.innerHTML = patches.map(function(p){
+        var items = (p.items || []).map(function(i){ return '<li>' + esc(i) + '</li>'; }).join('');
+        return '<div class="patch">' +
+            '<div class="when">' + esc(p.date) + '</div>' +
+            '<div><div class="title">' + esc(p.title) + '</div><ul>' + items + '</ul></div>' +
+          '</div>';
+      }).join('');
+    })();
+  </script>
+<div style="height:64px"></div><div style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#1e2126;color:#f1efeb;font:14px/1.5 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;padding:10px 16px;text-align:center">An archived copy of evecortex.com from November 2026. Eve now runs on your Mac: <a href="../" style="color:#f1efeb;font-weight:600">download Eve for Mac</a>.</div></body>
+</html>

@@ -1,0 +1,709 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eve, a living map</title>
+<meta name="description" content="Eve is memory for the AI you already use. Connect it to Claude or ChatGPT once, and everything your assistant remembers about you lands on a map you can read, fix or forget. Free open beta.">
+<link rel="canonical" href="./">
+<link rel="icon" href="eve-mark.svg">
+<link rel="alternate" type="text/plain" title="Eve for AI assistants" href="llms.txt">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Eve">
+<meta property="og:url" content="https://evecortex.com/">
+<meta property="og:title" content="Eve: memory for Claude and ChatGPT that you can see">
+<meta property="og:description" content="Connect Eve to Claude or ChatGPT once. Everything your AI remembers about you lands on a map you can read, fix or forget, and both assistants share it.">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://evecortex.com/#website",
+      "url": "https://evecortex.com/",
+      "name": "Eve"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://evecortex.com/#app",
+      "name": "Eve",
+      "alternateName": "Eve memory",
+      "url": "https://evecortex.com/",
+      "applicationCategory": "ProductivityApplication",
+      "operatingSystem": "Web",
+      "description": "A memory layer for AI assistants. Eve connects to Claude and ChatGPT as a custom connector (a remote MCP server) so they remember across conversations and share one memory, shown as a map you can read, correct and delete from.",
+      "featureList": [
+        "Persistent memory for Claude, ChatGPT, Claude Code and Codex",
+        "One memory shared across assistants",
+        "Every memory visible, with the conversation it came from",
+        "Correct or forget any memory",
+        "Separate and shared memories (cortexes)",
+        "Export as JSON and Markdown"
+      ],
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD", "description": "Free open beta" }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=Mona+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
+<style>
+/* Round 6 (built on round 5): the app's own fonts, a real top bar, a backing behind the text,
+   personal content, and more motion. Round 5 notes follow.
+   Round 5. Eve's own: the living map drives the page. Its kind colours are the palette,
+   its discs are the only ornament, and the page builds the map as you scroll.
+   Map grammar copied from directions/welcome-animation-b.html: kind-coloured discs,
+   the amber ring on what's top of mind, grey links at .45, the violet ring when a memory
+   lands, labels with a ground halo. Motion is transforms and opacity only. With no JS,
+   every word on the page is still there; only the map is missing. */
+@property --inv { syntax:'<number>'; inherits:true; initial-value:1; }
+:root {
+  --ground:#f9f8f5; --paper:#fff; --ink:#1e2126; --soft:#5f636b; --rule:#e6e5df; --rule-mid:#cfcec6;
+  --night:#16181c; --night-soft:#a3a7af; --night-rule:#2c2f35;
+  --eve:#6a4fc4;
+  --k-event:#3b6fe0; --k-person:#1f9d6f; --k-topic:#b8860b; --k-belief:#c2452d; --k-place:#0f8fa3;
+  /* The app's own faces, as on main: Hanken Grotesk for everything, Mona Sans for map labels. No mono. */
+  --display:'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --sans:'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --map:'Mona Sans', 'Helvetica Neue', Arial, sans-serif;
+  --mono:'Hanken Grotesk', 'Helvetica Neue', Arial, sans-serif;
+  --ease:cubic-bezier(.65,0,.2,1);
+}
+* { box-sizing:border-box; }
+html { background:var(--ground); }
+body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--sans); font-size:18px; line-height:1.6; -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums; }
+a { color:inherit; }
+.wrap { max-width:1240px; margin:0 auto; padding:0 48px; }
+
+nav { position:fixed; z-index:20; left:0; right:0; top:0; background:var(--ground); border-bottom:1px solid var(--rule); color:var(--ink);
+  transition:background-color .5s ease, border-color .5s ease, color .5s ease; }
+nav.dark { background:var(--night); border-color:var(--night-rule); color:#f1f0ec; }
+nav .wrap { display:flex; align-items:center; gap:28px; height:72px; font-size:15px; }
+/* the page's own chapters. The one you are reading is ink with its kind dot under it. */
+nav .sec { position:relative; color:var(--soft); transition:color .3s; }
+nav.dark .sec { color:var(--night-soft); }
+nav .sec::after { content:''; position:absolute; left:50%; bottom:-9px; width:6px; height:6px; margin-left:-3px; border-radius:50%; background:var(--c); transform:scale(0); transition:transform .45s cubic-bezier(.2,1.5,.4,1); }
+nav .sec.now { color:inherit; } nav .sec.now::after { transform:none; }
+nav .gap { width:1px; height:18px; background:var(--rule-mid); } nav.dark .gap { background:var(--night-rule); }
+nav.dark .join { background:#f1f0ec; color:var(--night); }
+nav .logo { color:inherit; }
+nav .logo svg path { transition:stroke .5s; } nav.dark .logo svg path { stroke:#f1f0ec; }
+nav .logo { display:flex; align-items:center; gap:7px; margin-right:auto; text-decoration:none; font-family:var(--display); font-weight:600; font-size:23px; letter-spacing:-.02em; }
+nav .logo svg { width:32px; height:32px; }
+nav a { text-decoration:none; }
+nav .join { background:var(--ink); color:var(--paper); padding:9px 16px; border-radius:4px; font-weight:500; }
+
+/* ═══ SCENE A: one map, pinned, that the first four chapters build ═══ */
+.sceneA { position:relative; }
+.stage { position:sticky; top:0; height:100vh; overflow:hidden; }
+.world { position:absolute; left:0; top:0; width:1600px; height:1000px; transform-origin:0 0;
+  transition:transform 1.3s var(--ease), --inv 1.3s var(--ease); }
+.world svg { position:absolute; inset:0; width:1600px; height:1000px; overflow:visible; }
+.edge { stroke:#9a9ea6; stroke-width:1.1; vector-effect:non-scaling-stroke; opacity:0; transition:opacity .8s ease; }
+.edge.on { opacity:.45; }
+.node { position:absolute; width:0; height:0; }
+.node .dot { position:absolute; left:calc(var(--r) * -1px); top:calc(var(--r) * -1px); width:calc(var(--r) * 2px); height:calc(var(--r) * 2px);
+  border-radius:50%; background:var(--c); box-shadow:0 0 0 1px #e2dcd2; opacity:0; transform:scale(.2);
+  transition:transform .7s cubic-bezier(.2,1.5,.4,1) var(--d, 0s), opacity .4s ease var(--d, 0s); }
+.node.top .dot { box-shadow:0 0 0 calc(2px * var(--inv)) #b45309; }
+.node .ring { position:absolute; left:calc(var(--r) * -1px - 7px); top:calc(var(--r) * -1px - 7px); width:calc(var(--r) * 2px + 14px); height:calc(var(--r) * 2px + 14px);
+  border-radius:50%; border:6px solid var(--eve); opacity:0; transform:scale(.5); pointer-events:none; }
+.node .lab { position:absolute; left:0; top:calc(var(--r) * 1px + 4px); white-space:nowrap; font-family:var(--map); font-size:15px; line-height:1.25; color:var(--ink);
+  transform:translateX(-50%) scale(var(--inv)); transform-origin:50% 0; opacity:0; transition:opacity .5s ease calc(var(--d, 0s) + .15s);
+  text-shadow:0 0 3px var(--ground), 0 0 3px var(--ground), 0 0 2px var(--ground), 0 0 2px var(--ground); }
+.node.top .lab { font-weight:600; }
+.node.on .dot { opacity:.9; transform:scale(1); }
+.node.on .lab { opacity:1; }
+.world.far .node.minor .lab { opacity:0; }
+.node.old .dot { opacity:.35; } .node.old .lab { opacity:.45; text-decoration:line-through; }
+.node.landed .ring { animation:land 2.4s ease-out 1 forwards; }
+@keyframes land { 0%{opacity:0; transform:scale(.5)} 12%{opacity:.85; transform:scale(1)} 100%{opacity:0; transform:scale(1.05)} }
+/* alexa: "inside out loading of nodes ... as if the nodes were landing individually and edges being
+   drawn between them, starting at the center". Once, on load. Each node lands on its own, nearest the
+   wedding first; as it lands, the lines to neighbours already placed draw out towards it.
+   Transforms and opacity only. --di is the node's (or line's) turn, set once by the script. */
+.world.intro .node.first .dot { animation:nland .55s cubic-bezier(.2,1.4,.4,1) var(--di) both; }
+@keyframes nland { from { opacity:0; transform:translateY(calc(-18px * var(--inv))) scale(.3); } to { opacity:.9; transform:none; } }
+.world.intro .node.first .lab { animation:labin .4s ease calc(var(--di) + .25s) both; }
+@keyframes labin { from { opacity:0; } to { opacity:1; } }
+.world.intro .edge.first { transform-box:view-box; animation:draw .45s var(--ease) var(--di) both; }
+@keyframes draw { from { transform:scale(0); } }
+
+.chapters { position:relative; margin-top:-100vh; z-index:2; }
+.ch { min-height:100vh; display:flex; align-items:center; }
+.ch.tall { min-height:170vh; align-items:flex-start; }
+.ch.tall .text { position:sticky; top:22vh; }
+.text { width:min(430px, 36vw); padding:18px 0; position:relative; }
+/* alexa, r5: "it might be nice to add some kind of backing to the text". A soft pool of the
+   ground behind the words, feathered at the edge so the map runs into it, not under the letters. */
+.chapters .text::before { content:''; position:absolute; inset:-8px -14px -8px -24px; z-index:-1; background:var(--ground);
+  border-radius:24px; box-shadow:0 0 22px 14px var(--ground); }
+.hero .text { width:min(560px, 46vw); }
+.hero { padding-top:72px; }
+.hero h1 { font-family:var(--display); font-weight:500; font-size:clamp(44px, 5.2vw, 66px); line-height:1.02; letter-spacing:-.03em; margin:0 0 26px; text-wrap:balance; }
+.hero p { font-size:20px; line-height:1.55; margin:0 0 30px; }
+.hero p a { text-decoration-color:var(--rule-mid); text-underline-offset:4px; }
+.cta { display:flex; gap:24px; align-items:center; font-size:16px; }
+.btn { display:inline-flex; align-items:center; height:50px; padding:0 22px; border-radius:4px; background:var(--ink); color:var(--paper); text-decoration:none; font-weight:500; }
+.cta .quiet { text-underline-offset:4px; text-decoration-color:var(--rule-mid); }
+.hint { font-family:var(--mono); font-size:14px; color:var(--soft); margin-top:46px; display:flex; gap:10px; align-items:center; }
+.hint i { width:1px; height:26px; background:var(--ink); display:inline-block; transform-origin:top; animation:hint 2.2s var(--ease) 3; }
+@keyframes hint { 0%{transform:scaleY(0)} 50%{transform:scaleY(1)} 100%{transform:scaleY(1); opacity:0} }
+
+h2 { font-family:var(--display); font-weight:500; font-size:44px; line-height:1.06; letter-spacing:-.025em; margin:0 0 22px; text-wrap:balance; }
+h2 .k { display:inline-block; width:.36em; height:.36em; border-radius:50%; background:var(--c); vertical-align:.12em; margin-right:.22em; }
+.text p { margin:0 0 16px; font-size:18.5px; }
+.tok { font-weight:600; white-space:nowrap; }
+.tok::before { content:''; display:inline-block; width:.5em; height:.5em; border-radius:50%; background:var(--c); margin:0 .22em .08em 0; vertical-align:middle; }
+
+.chat { margin-top:22px; font-size:15px; }
+.chat .who { font-family:var(--mono); font-size:14px; color:var(--soft); margin-bottom:8px; }
+.chat .q { color:var(--soft); margin-bottom:10px; }
+.chat .you { font-family:var(--display); font-size:24px; line-height:1.3; letter-spacing:-.01em; margin-bottom:14px; }
+.js .chat .you .w { opacity:.12; transition:opacity .25s ease; }
+.js .chat .you .w.on { opacity:1; }
+.tool { border-top:1px solid var(--rule-mid); padding-top:10px; }
+.tool .row { font-family:var(--mono); font-size:14px; color:var(--soft); }
+.tool .row b { color:var(--ink); font-weight:500; }
+.tool .row { position:relative; overflow:hidden; }
+.tool .saving { display:none; color:var(--eve); }
+.js .tool.open:not(.done) .saving { display:inline; } .js .tool.open:not(.done) .used { display:none; }
+.js .tool.open:not(.done) .row::after { content:''; position:absolute; top:0; bottom:0; left:0; width:40%;
+  background:linear-gradient(90deg, transparent, rgba(249,248,245,.85), transparent); animation:shim 1s linear infinite; }
+@keyframes shim { from { transform:translateX(-100%); } to { transform:translateX(260%); } }
+.tool .chev { display:inline-block; margin-right:6px; transition:transform .4s var(--ease); }
+.tool p { font-size:15px; margin:8px 0 0; }
+.js .tool p { opacity:0; transform:translateY(-4px); transition:opacity .4s, transform .4s var(--ease); }
+.js .tool.open p { opacity:1; transform:none; } .js .tool.open .chev { transform:rotate(90deg); }
+
+/* ═══ SCENE B: what you said, and what Eve kept ═══ */
+.said-kept { padding:170px 0 150px; }
+.said-kept h2 { font-size:58px; max-width:11em; margin-bottom:80px; }
+.entry { display:grid; grid-template-columns:230px 1fr; gap:0 56px; padding:44px 0; border-top:1px solid var(--rule); }
+.entry:last-of-type { border-bottom:1px solid var(--rule); }
+.when { font-family:var(--mono); font-size:14px; color:var(--soft); padding-top:8px; }
+.when b { display:block; color:var(--ink); font-weight:500; }
+.said { font-family:var(--display); font-size:31px; line-height:1.3; letter-spacing:-.015em; margin:0; max-width:24em; }
+.said .th { box-shadow:inset 0 -2px 0 var(--c); }
+.link { width:2px; height:34px; margin:10px 0 10px 5px; background:var(--c); transform-origin:top; }
+.kept { display:grid; grid-template-columns:22px 1fr; gap:0 10px; }
+.kept .dot { width:13px; height:13px; border-radius:50%; background:var(--c); margin-top:6px; }
+.kept .what { font-size:19px; font-weight:500; }
+.kept .more { font-size:15px; color:var(--soft); }
+.kept .was { text-decoration:line-through; }
+.gone .said { color:var(--soft); }
+.gone .redact { background:var(--rule); color:transparent; border-radius:2px; }
+.gone .dot { background:transparent; border:1.5px solid var(--rule-mid); }
+.gone .link { background:var(--rule-mid); }
+.syn { font-family:var(--mono); font-size:14px; color:var(--soft); margin:20px 0 0 286px; }
+/* on scroll: your words first, then the line down, then the memory lands */
+.js .entry .link { transform:scaleY(0); transition:transform .6s var(--ease) .25s; }
+.js .entry .kept .dot { transform:scale(0); transition:transform .6s cubic-bezier(.2,1.5,.4,1) .75s; }
+.js .entry .kept .what, .js .entry .kept .more { opacity:0; transition:opacity .5s ease .9s; }
+.entry > div { position:relative; }
+.flyer { position:absolute; left:0; top:0; margin:0; white-space:nowrap; pointer-events:none; font-family:var(--display); font-size:31px; line-height:1.3; letter-spacing:-.015em;
+  color:var(--ink); box-shadow:inset 0 -2px 0 var(--c); transform-origin:0 0; will-change:transform, opacity; }
+.js .entry.in .link { transform:none; } .js .entry.in .kept .dot { transform:none; } .js .entry.in .kept .what, .js .entry.in .kept .more { opacity:1; }
+
+/* ═══ SCENE C: the product itself, on the night field ═══
+   alexa, r6: "id also like memory lane, atlas, and board to more faithfully mirror what their actual
+   pages look like". So this is the app, drawn from frontend/index.html on main: its top bar, icons,
+   type (Hanken Grotesk, 14px rows) and layouts, with the wedding in it. Scrolling switches the tab. */
+.sceneC { background:var(--night); color:#f1f0ec; position:relative; }
+.stageC { position:sticky; top:0; height:100vh; overflow:hidden; }
+.win { position:absolute; left:0; top:0; width:960px; height:600px; transform-origin:0 0; background:#f9f8f5; color:#1e2126; border-radius:10px; overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,.06), 0 40px 90px rgba(0,0,0,.45); font-size:14px; line-height:1.45; --link:#2a5bd7; }
+.win .ic { width:14px; height:14px; flex:none; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+.win .sp { flex:1; } .win .faint { color:#80848c; } .win .soft { color:var(--soft); } .win .sm { font-size:12px; }
+.win .edot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--eve); }
+.abar { height:46px; display:flex; align-items:center; gap:16px; padding:0 16px; border-bottom:1px solid var(--rule); font-size:13.5px; white-space:nowrap; }
+.abar .sunm { width:24px; height:24px; margin-right:-10px; } .abar .wm { font-size:18px; font-weight:600; letter-spacing:-.01em; }
+.abar .cx { display:inline-flex; align-items:center; gap:4px; font-weight:500; border-bottom:1.5px solid var(--ink); padding-bottom:1px; margin-right:6px; }
+.abar .tab { display:inline-flex; align-items:center; gap:5px; color:var(--soft); transition:color .3s; }
+.abar .tab .edot { width:5px; height:5px; background:var(--soft); }
+.abar .tsep { width:1px; height:18px; background:var(--rule); margin:0 -4px; }
+.abar .act { color:var(--eve); display:inline-flex; align-items:center; gap:6px; }
+.edot.pulse { animation:pulse 2s ease-in-out 3; } @keyframes pulse { 50% { transform:scale(.6); opacity:.5; } }
+.win[data-v="map"] .tab[data-t="map"], .win[data-v="lane"] .tab[data-t="lane"], .win[data-v="atlas"] .tab[data-t="atlas"], .win[data-v="board"] .tab[data-t="board"] { color:var(--ink); font-weight:600; }
+.pane { position:absolute; left:0; right:0; top:47px; bottom:0; opacity:0; visibility:hidden; transform:translateY(10px); transition:opacity .45s ease, transform .6s var(--ease), visibility 0s .6s; }
+.win[data-v="map"] .p-map, .win[data-v="lane"] .p-lane, .win[data-v="atlas"] .p-atlas, .win[data-v="board"] .p-board { opacity:1; visibility:visible; transform:none; transition:opacity .45s ease .12s, transform .6s var(--ease) .12s, visibility 0s; }
+/* rows and cards settle one after another when their view opens */
+.lrow, .bcard, .mm .n { transition:transform .55s var(--ease) calc(.15s + var(--i) * 45ms), opacity .4s ease calc(.15s + var(--i) * 45ms); }
+.js .win:not([data-v="lane"]) .lrow, .js .win:not([data-v="board"]) .bcard { transform:translateX(-10px); opacity:0; }
+.js .win:not([data-v="map"]) .mm .n { transform:scale(.6); opacity:0; }
+.mm { width:100%; height:100%; } .mm .n { transform-box:fill-box; transform-origin:center; }
+.mm line { stroke:#9a9ea6; stroke-width:1.1; opacity:.5; }
+.mm text { font-family:var(--map); font-size:15px; fill:#1e2126; paint-order:stroke; stroke:#f9f8f5; stroke-width:4px; stroke-linejoin:round; } .mm text.t { font-weight:600; }
+/* Memory Lane */
+.p-lane { padding:22px 26px 0; }
+.lhead { display:flex; align-items:center; gap:12px; font-size:19px; font-weight:500; color:var(--eve); padding:0 0 14px 4px; border-bottom:1.5px solid #80848c; }
+.lbar { display:flex; align-items:center; gap:6px; padding:10px 4px; border-bottom:1px solid var(--rule); font-size:12px; } .lbar .ic { width:12px; height:12px; color:#80848c; }
+.lbar .ic + .faint:last-child { margin-left:18px; }
+.ladd { display:flex; align-items:center; gap:6px; padding:12px 26px 4px; font-size:12.5px; } .ladd .ic { width:12px; height:12px; }
+.lgrp { display:flex; align-items:baseline; gap:6px; padding:16px 26px 6px; font-size:14.5px; } .lgrp b { font-weight:600; }
+.lrow { display:grid; grid-template-columns:14px 16px 1fr 150px 56px; align-items:center; gap:0 10px; height:28px; border-bottom:1px solid var(--rule); padding-right:22px; }
+.lrow .tick { width:10px; height:1.5px; background:#80848c; }
+.lrow .lt { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .lrow .ls, .lrow .ld { color:#80848c; font-size:12px; text-align:right; }
+/* Atlas */
+.p-atlas { display:grid; grid-template-columns:230px 1fr; gap:0 52px; padding:32px 40px 0; }
+.aacts { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--soft); margin:8px 0 14px; } .aacts .ic { width:13px; height:13px; }
+.arule { border-top:1px solid var(--rule-mid); }
+.ach { font-size:13px; color:var(--soft); font-weight:500; padding:10px 0; border-bottom:1px solid var(--rule); } .ach:first-of-type, .ach.on { color:var(--ink); font-weight:600; }
+.apage { max-width:520px; } .apage h4 { margin:0 0 6px; font-size:24px; font-weight:600; letter-spacing:-.01em; }
+.alead { color:var(--eve); font-size:15.5px; line-height:1.55; margin:0 0 16px; }
+.apage p { font-size:15.5px; line-height:1.7; margin:0 0 12px; } .cite { color:var(--link); font-size:13px; }
+.adrawn { display:flex; font-size:12.5px; color:#80848c; border-bottom:1px solid var(--rule-mid); padding:12px 0 6px; margin-top:6px; } .adrawn .lk { color:var(--link); }
+.asrc { display:flex; flex-wrap:wrap; gap:0 18px; font-size:13.5px; } .asrc span { padding:7px 0; border-bottom:1px solid var(--rule); } .asrc i { font-style:normal; color:#80848c; font-size:12px; margin-right:8px; }
+/* Board */
+.p-board { padding:26px 28px 0; }
+.bhead { display:flex; align-items:flex-start; } .bhead > div:first-child { flex:1; }
+.btitle { display:flex; align-items:center; gap:8px; font-size:23px; font-weight:600; letter-spacing:-.01em; margin-bottom:4px; } .btitle .ic { width:17px; height:17px; }
+.btabs { display:flex; gap:14px; font-size:12.5px; color:var(--soft); padding-top:10px; } .btabs .on { color:var(--ink); border-bottom:1.5px solid var(--ink); }
+.bbar { display:flex; gap:16px; align-items:baseline; font-size:12.5px; padding:14px 0 10px; border-bottom:1px solid var(--rule); margin-top:6px; }
+.bcols { display:grid; grid-template-columns:repeat(4, 1fr); } .bcol { padding:12px 16px 0; border-right:1px solid var(--rule); min-height:330px; } .bcol:first-child { padding-left:0; } .bcol:last-child { border-right:0; }
+.bch { display:flex; justify-content:space-between; font-size:15px; font-weight:600; padding-bottom:8px; border-bottom:1px solid var(--rule-mid); margin-bottom:6px; } .bch .faint { font-weight:400; font-size:12px; }
+.bcard { padding:10px 0; border-bottom:1px solid var(--rule); } .bt { display:flex; justify-content:space-between; font-size:13.5px; font-weight:500; margin-bottom:3px; }
+.bd { font-size:12px; font-weight:400; color:var(--soft); } .bd.late { color:#c2452d; } .bl { font-size:12.5px; color:var(--soft); line-height:1.6; }
+.bnone { font-size:12.5px; color:var(--soft); padding:10px 0; }
+/* the phone gets the app's phone layout: no source or date column, one-column Atlas, two board columns */
+.win.narrow { width:460px; height:640px; }
+.win.narrow .abar { gap:12px; overflow:hidden; } .win.narrow .hide-n, .win.narrow .act, .win.narrow .tab[data-t="eve"], .win.narrow .tsep { display:none; }
+.win.narrow .abar .tab { font-size:0; gap:0; } .win.narrow .abar .tab .ic { width:16px; height:16px; }
+.win.narrow[data-v="map"] .tab[data-t="map"], .win.narrow[data-v="lane"] .tab[data-t="lane"], .win.narrow[data-v="atlas"] .tab[data-t="atlas"], .win.narrow[data-v="board"] .tab[data-t="board"] { font-size:13.5px; gap:5px; }
+.win.narrow .p-lane { padding:18px 16px 0; } .win.narrow .lrow { grid-template-columns:10px 16px 1fr; padding-right:0; }
+.win.narrow .lrow .ls, .win.narrow .lrow .ld, .win.narrow .lgrp .sm, .win.narrow .lbar > :nth-child(n+3) { display:none; }
+.win.narrow .lgrp, .win.narrow .ladd { padding-left:4px; }
+.win.narrow .p-atlas { display:block; padding:20px 22px 0; } .win.narrow .arail > :not(.ach.on) { display:none; }
+.win.narrow .ach.on { font-size:12.5px; color:var(--soft); font-weight:500; margin-bottom:14px; } .win.narrow .ach.on::before { content:'Contents · '; }
+.win.narrow .p-board { padding:20px 18px 0; } .win.narrow .bbar > :nth-child(n+2), .win.narrow .btabs { display:none; }
+.win.narrow .bcols { grid-template-columns:1fr 1fr; } .win.narrow .bcol:nth-child(n+3) { display:none; } .win.narrow .bcol:nth-child(2) { border-right:0; padding-right:0; }
+.chaptersC { position:relative; margin-top:-100vh; z-index:2; }
+.chC { min-height:100vh; display:flex; align-items:center; }
+.chC .text { width:min(360px, 28vw); }
+.chC h2 { color:#f1f0ec; }
+.chC p { color:var(--night-soft); }
+.chC .n { font-family:var(--mono); font-size:14px; color:var(--night-soft); margin-bottom:14px; }
+
+/* ═══ SCENE D: the promises, each one a memory landing ═══ */
+.rules { padding:170px 0 90px; }
+.rules ol { list-style:none; padding:0; margin:0; }
+.rules li { display:grid; grid-template-columns:230px 1fr; gap:0 56px; align-items:center; padding:26px 0; border-top:1px solid var(--rule); font-family:var(--display); font-size:40px; line-height:1.15; letter-spacing:-.02em; }
+.rules li:last-child { border-bottom:1px solid var(--rule); }
+.rules li .dot { justify-self:end; width:22px; height:22px; border-radius:50%; background:var(--c); }
+.js .rules li .dot { transform:scale(0); transition:transform .7s cubic-bezier(.2,1.5,.4,1) .15s; }
+.js .rules li.in .dot { transform:none; }
+.rules h2 { margin:0 0 50px 286px; font-size:58px; }
+
+.share { padding:130px 0 150px; display:grid; grid-template-columns:230px 1fr; gap:0 56px; }
+.share > div { grid-column:2; max-width:760px; }
+.share h2 { font-size:46px; margin-bottom:26px; }
+.share p { font-size:19px; margin:0 0 34px; }
+/* The last thing on the page: Eve's sun, rising over the horizon as you scroll to it.
+   Its resting state is risen, so with no script it is simply there. */
+.dawn { position:relative; height:min(50vh, 440px); overflow:hidden; --sw:min(34vw, 320px); --hz:70px; }
+.dawn .sun { position:absolute; left:50%; bottom:calc(var(--hz) - var(--sw) * .4); width:var(--sw); height:var(--sw); margin-left:calc(var(--sw) / -2);
+  border-radius:50%; background:#B5673F; transform:translateY(calc(var(--rise, 0) * 92%)); will-change:transform; }
+.dawn .hz { position:absolute; left:-2%; right:-2%; bottom:0; height:var(--hz); background:var(--ground); }
+.dawn .hz::before { content:''; position:absolute; left:0; right:0; top:-4px; height:8px; border-radius:8px; background:#3A322C; }
+footer { border-top:0; }
+footer .wrap { display:flex; gap:26px; padding-top:26px; padding-bottom:40px; font-family:var(--mono); font-size:14px; color:var(--soft); align-items:center; }
+footer .wrap span:first-child { margin-right:auto; color:var(--ink); display:flex; align-items:center; gap:6px; font-family:var(--display); font-size:18px; font-weight:600; }
+footer svg { width:26px; height:26px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .world, .node .dot, .node .lab, .edge, .vn, .vn .lab, .tool p, .link, .kept .dot, .kept .what, .kept .more, .rules li .dot { transition:none !important; }
+  .node.landed .ring, .hint i, .tool .row::after, .edot.pulse { animation:none !important; }
+  .pane, .lrow, .bcard, .mm .n { transition:none !important; }
+  .dawn .sun { transform:none !important; } nav, nav .sec::after { transition:none !important; }
+}
+
+@media (max-width:760px) {
+  body { font-size:17px; }
+  .wrap { padding:0 18px; }
+  nav .wrap { height:58px; gap:14px; } nav .hide { display:none; } nav .logo { font-size:20px; } nav .logo svg { width:28px; height:28px; } nav .join { padding:7px 12px; font-size:14px; }
+  .ch { align-items:flex-end; } .ch.tall { align-items:flex-end; } .ch.tall .text { top:auto; bottom:0; }
+  .text, .hero .text { width:100%; padding:20px 0 28px; border-top:1px solid var(--rule); background:var(--ground); }
+  .hero .text { border-top:0; }
+  .hero h1 { font-size:38px; margin-bottom:16px; } .hero p { font-size:17px; margin-bottom:22px; }
+  .cta { flex-direction:column; align-items:flex-start; gap:14px; }
+  .hint { margin-top:24px; }
+  h2 { font-size:30px; margin-bottom:12px; }
+  .text p { font-size:16.5px; margin-bottom:10px; }
+  .chat { margin-top:10px; } .chat .you { font-size:19px; }
+  .node .lab { font-size:13px; }
+  .world.far .node:not(.top) .lab { opacity:0; }
+  .chapters .text::before { display:none; }
+  .said-kept { padding:96px 0 80px; } .said-kept h2 { font-size:36px; margin-bottom:40px; }
+  .entry { grid-template-columns:1fr; padding:28px 0; } .when { padding:0 0 10px; } .when b { display:inline; } .when b::after { content:', '; font-weight:400; color:var(--soft); }
+  .said { font-size:22px; } .syn { margin-left:0; }
+  .chC { align-items:flex-end; } .chC .text { width:100%; padding:20px 0 30px; border-top:1px solid var(--night-rule); background:var(--night); }
+  .rules { padding:96px 0 60px; } .rules h2 { margin:0 0 30px; font-size:36px; }
+  .rules li { grid-template-columns:22px 1fr; gap:0 14px; font-size:24px; padding:18px 0; } .rules li .dot { justify-self:start; width:14px; height:14px; }
+  .share { grid-template-columns:1fr; padding:80px 0 90px; } .share > div { grid-column:1; } .share h2 { font-size:30px; }
+  footer .wrap { flex-wrap:wrap; gap:10px 18px; } footer .wrap span:first-child { width:100%; }
+}
+</style></head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="./"><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><clipPath id="hz"><rect x="0" y="0" width="48" height="27.7"/></clipPath></defs><circle cx="24" cy="26" r="6.3" fill="#B5673F" clip-path="url(#hz)"/><path d="M7 28.5 Q24 27.5 41 28.5" stroke="#3A322C" stroke-width="3.4" stroke-linecap="round"/></svg>eve</a>
+  <a class="hide sec" href="#ch1" data-sec="how" style="--c:var(--k-event)">How it works</a><a class="hide sec" href="#views" data-sec="views" style="--c:var(--k-place)">Four views</a><a class="hide sec" href="#promises" data-sec="promises" style="--c:var(--k-belief)">Promises</a><span class="hide gap"></span><a class="hide" href="docs.html">Docs</a><a href="../">Download</a><a class="join" href="../">Download Eve for Mac</a>
+</div></nav>
+
+<!-- ═══ SCENE A ═══ -->
+<section class="sceneA" data-sec="how">
+  <div class="stage" aria-hidden="true"><div class="world" id="world"><svg id="edges"></svg></div></div>
+  <div class="chapters wrap">
+    <div class="ch hero" data-step="0"><div class="text">
+      <h1>Your AI remembers you. Now you can see what it remembers.</h1>
+      <p>Eve is memory for the AI you already use. Connect it to <a href="docs.html">Claude</a> or <a href="docs.html">ChatGPT</a> once. Everything it keeps about you lands on a map you can read, next to the words it came from, and you can fix or forget any of it.</p>
+      <div class="cta"><a class="btn" href="../">Download Eve for Mac</a><a class="quiet" href="#ch1">Look around first</a></div>
+      <div class="hint"><i></i>Scroll, and watch the map</div>
+    </div></div>
+
+    <div class="ch tall" data-step="1" id="ch1"><div class="text">
+      <h2><span class="k" style="--c:var(--k-event)"></span>You talk like you always do.</h2>
+      <p>Tell Claude something has changed. It saves it to Eve while you talk, and the map changes with it.</p>
+      <div class="chat">
+        <div class="who">You, to Claude</div>
+        <div class="you" id="you">Quick update: we moved the wedding to June 7th, the boathouse had a cancellation.</div>
+        <div class="tool" id="tool"><div class="row"><span class="chev">›</span><span class="used">Used <b>eve_remember</b></span><span class="saving">Saving to Eve…</span></div>
+          <p>The wedding moved to 7 June. The boathouse had a cancellation.</p></div>
+      </div>
+    </div></div>
+
+    <div class="ch tall" data-step="2" id="ch2"><div class="text">
+      <h2><span class="k" style="--c:var(--k-person)"></span>It connects what you tell it.</h2>
+      <p>Tell ChatGPT that <span class="tok" style="--c:var(--k-person)">Maya</span> can’t have cashews. Eve adds it to Maya, who it already knew.</p>
+      <p>A month later, ask Claude to plan the <span class="tok" style="--c:var(--k-event)">tasting menu</span>. It already knows, because both assistants read the same memory.</p>
+    </div></div>
+
+    <div class="ch" data-step="3"><div class="text">
+      <h2><span class="k" style="--c:var(--k-topic)"></span>And it grows with you.</h2>
+      <p>Family, home, a knee that needs physio, the trip in April. Months in, it is the map of everything your AI knows about your life, kept in the open where you can read it.</p>
+    </div></div>
+  </div>
+</section>
+
+<!-- ═══ SCENE B ═══ -->
+<section class="said-kept" data-sec="how"><div class="wrap">
+  <h2>What you said, and what Eve kept.</h2>
+  <article class="entry" style="--c:var(--k-event)">
+    <div class="when"><b>Chat with Claude</b>14 Sep, 21:40</div>
+    <div><p class="said">“Quick update: we moved the wedding to <span class="th">June 7th</span>, the boathouse had a cancellation.”</p>
+      <div class="link"></div>
+      <div class="kept"><span class="dot"></span><div><div class="what">The wedding moved to 7 June.</div><div class="more">Replaces <span class="was">The wedding is on 31 May</span></div></div></div></div>
+  </article>
+  <article class="entry" style="--c:var(--k-person)">
+    <div class="when"><b>Chat with ChatGPT</b>12 Sep, 08:15</div>
+    <div><p class="said">“Can you suggest a snack for the drive? Nothing with cashews, <span class="th">Maya’s allergic</span>.”</p>
+      <div class="link"></div>
+      <div class="kept"><span class="dot"></span><div><div class="what">Maya is allergic to cashews.</div><div class="more">Added to Maya, who Eve already knew.</div></div></div></div>
+  </article>
+  <article class="entry gone">
+    <div class="when"><b>Chat with Claude</b>2 Sep, 11:30</div>
+    <div><p class="said">“The login for the venue portal is <span class="redact">hannah.m / boathouse24</span>, can you remember that?”</p>
+      <div class="link"></div>
+      <div class="kept"><span class="dot"></span><div><div class="what">Forgotten.</div><div class="more">You asked Eve to forget this on 2 Sep. Your assistant won’t bring it up again.</div></div></div></div>
+  </article>
+  <p class="syn">Every memory on this page is made up.</p>
+</div></section>
+
+<!-- ═══ SCENE C ═══ -->
+<section class="sceneC" id="views" data-sec="views">
+  <div class="stageC" aria-hidden="true"><div class="win" id="win" data-v="map"><div class="abar"><svg class="sunm" viewBox="0 0 48 48" fill="none"><defs><clipPath id="hzw"><rect x="0" y="0" width="48" height="27.7"/></clipPath></defs><circle cx="24" cy="26" r="6.3" fill="#B5673F" clip-path="url(#hzw)"/><path d="M7 28.5 Q24 27.5 41 28.5" stroke="#3A322C" stroke-width="3.4" stroke-linecap="round"/></svg><b class="wm">eve</b><span class="cx">Family <svg class="ic" viewBox="0 0 16 16"><path d="M4.5 6.5 8 10l3.5-3.5"/></svg></span><span class="tab" data-t="map"><svg class="ic" viewBox="0 0 16 16"><circle cx="4" cy="4" r="1.8"/><circle cx="12" cy="6" r="1.8"/><circle cx="7" cy="12" r="1.8"/><path d="M5.6 4.6 10.3 5.6M5 6l1.4 4.3M8.6 11l2.6-3.6"/></svg>Mindmap</span><span class="tab" data-t="lane"><svg class="ic" viewBox="0 0 16 16"><path d="M3 4h10M3 8h10M3 12h7"/></svg>Memory Lane</span><span class="tsep"></span><span class="tab" data-t="atlas"><svg class="ic" viewBox="0 0 16 16"><path d="M2.5 3.5h4.5a1.5 1.5 0 0 1 1 .4 1.5 1.5 0 0 1 1-.4h4.5v9H9a1 1 0 0 0-1 .6 1 1 0 0 0-1-.6H2.5z"/></svg>Atlas</span><span class="tab" data-t="board"><svg class="ic" viewBox="0 0 16 16"><rect x="2" y="2.5" width="3.5" height="11" rx=".8"/><rect x="6.25" y="2.5" width="3.5" height="7" rx=".8"/><rect x="10.5" y="2.5" width="3.5" height="9" rx=".8"/></svg>Board</span><span class="tab" data-t="eve"><span class="edot"></span>Eve</span><span class="sp"></span><span class="act"><span class="edot pulse"></span>up to date</span><span class="tab hide-n"><svg class="ic" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M8 3v10"/></svg>Split</span><span class="tab hide-n"><svg class="ic" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2M3.6 3.6l1.4 1.4M11 11l1.4 1.4M3.6 12.4 5 11M11 5l1.4-1.4"/></svg></span></div><div class="pane p-map"><svg class="mm" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">
+<line x1="500" y1="300" x2="690" y2="250"/>
+<line x1="500" y1="300" x2="640" y2="120"/>
+<line x1="500" y1="300" x2="330" y2="190"/>
+<line x1="500" y1="300" x2="290" y2="380"/>
+<line x1="500" y1="300" x2="420" y2="470"/>
+<line x1="500" y1="300" x2="640" y2="440"/>
+<line x1="290" y1="380" x2="180" y2="500"/>
+<line x1="180" y1="500" x2="380" y2="560"/>
+<line x1="380" y1="560" x2="500" y2="300"/>
+<line x1="640" y1="440" x2="830" y2="520"/>
+<line x1="500" y1="300" x2="820" y2="380"/>
+<line x1="330" y1="190" x2="250" y2="90"/>
+<line x1="690" y1="250" x2="640" y2="120"/>
+<line x1="640" y1="120" x2="850" y2="160"/>
+<g class="n" style="--i:0"><circle cx="500" cy="300" r="16" fill="none" stroke="#b45309" stroke-width="2.5"/><circle cx="500" cy="300" r="13" fill="#b8860b" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="500" y="330" text-anchor="middle" class="t">The wedding</text></g>
+<g class="n" style="--i:1"><circle cx="690" cy="250" r="8" fill="#3b6fe0" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="690" y="275" text-anchor="middle">Moved to 7 June</text></g>
+<g class="n" style="--i:2"><circle cx="640" cy="120" r="8" fill="#0f8fa3" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="640" y="145" text-anchor="middle">Boathouse booked</text></g>
+<g class="n" style="--i:3"><circle cx="330" cy="190" r="9" fill="#1f9d6f" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="330" y="216" text-anchor="middle">Hannah</text></g>
+<g class="n" style="--i:4"><circle cx="290" cy="380" r="8.5" fill="#1f9d6f" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="290" y="405.5" text-anchor="middle">Maya</text></g>
+<g class="n" style="--i:5"><circle cx="180" cy="500" r="7" fill="#c2452d" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="180" y="524" text-anchor="middle">Allergic to cashews</text></g>
+<g class="n" style="--i:6"><circle cx="420" cy="470" r="7" fill="#c2452d" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="420" y="494" text-anchor="middle">About forty guests</text></g>
+<g class="n" style="--i:7"><circle cx="640" cy="440" r="8" fill="#b8860b" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="640" y="465" text-anchor="middle">Wedding budget</text></g>
+<g class="n" style="--i:8"><circle cx="380" cy="560" r="7.5" fill="#3b6fe0" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="380" y="584.5" text-anchor="middle">Tasting menu, 3 Oct</text></g>
+<g class="n" style="--i:9"><circle cx="820" cy="380" r="7" fill="#3b6fe0" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="820" y="404" text-anchor="middle">Send the invites</text></g>
+<g class="n" style="--i:10"><circle cx="830" cy="520" r="6.5" fill="#3b6fe0" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="830" y="543.5" text-anchor="middle">Pick the flowers</text></g>
+<g class="n" style="--i:11"><circle cx="250" cy="90" r="6.5" fill="#3b6fe0" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="250" y="113.5" text-anchor="middle">Hannah’s speech</text></g>
+<g class="n" style="--i:12"><circle cx="850" cy="160" r="6" fill="#0f8fa3" stroke="#e2dcd2" stroke-width="1" opacity=".9"/><text x="850" y="183" text-anchor="middle">Lake Merritt</text></g>
+</svg></div><div class="pane p-lane"><div class="lhead"><span class="edot"></span>I’m holding 214 memories.</div><div class="lbar"><svg class="ic" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><span class="faint">Search memories</span><span class="sp"></span><span class="faint">Sort</span> Last modified <svg class="ic" viewBox="0 0 16 16"><path d="M4.5 6.5 8 10l3.5-3.5"/></svg><span class="faint">Group</span> None <svg class="ic" viewBox="0 0 16 16"><path d="M4.5 6.5 8 10l3.5-3.5"/></svg><span class="faint">214 memories</span></div><div class="ladd"><svg class="ic" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg> add memory</div><div class="lgrp"><b>top of mind</b> <span class="faint">3</span><span class="sp"></span><span class="faint sm">pinned, kept by Eve, or an open thread</span></div><div class="lrow" style="--i:0"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#3b6fe0"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg><span class="lt">Tasting menu, 3 October</span><span class="ls">Eve noted this</span><span class="ld">22 Sep</span></div><div class="lrow" style="--i:1"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#3b6fe0"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg><span class="lt">Send the invites</span><span class="ls">Eve noted this</span><span class="ld">21 Sep</span></div><div class="lrow" style="--i:2"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#3b6fe0"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg><span class="lt">Call Sofia about the flowers</span><span class="ls">Eve noted this</span><span class="ld">20 Sep</span></div><div class="lgrp"><b>Sunday</b> 14 September <span class="faint">4</span></div><div class="lrow" style="--i:3"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#3b6fe0"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3.2l2 1.3"/></svg><span class="lt">The wedding moved to 7 June</span><span class="ls">Chat with Claude</span><span class="ld">14 Sep</span></div><div class="lrow" style="--i:4"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#0f8fa3"><path d="M8 14s-4.5-4.3-4.5-7.5a4.5 4.5 0 0 1 9 0C12.5 9.7 8 14 8 14z"/><circle cx="8" cy="6.5" r="1.5"/></svg><span class="lt">The boathouse had a cancellation</span><span class="ls">Chat with Claude</span><span class="ld">14 Sep</span></div><div class="lrow" style="--i:5"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#1f9d6f"><circle cx="8" cy="5.8" r="2.7"/><path d="M3.5 13.5c0-2.6 2-4.2 4.5-4.2s4.5 1.6 4.5 4.2"/></svg><span class="lt">Hannah is giving the speech</span><span class="ls">Chat with Claude</span><span class="ld">14 Sep</span></div><div class="lrow" style="--i:6"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#6b7a8f"><path d="M4 2.5h6l3 3v8H4z M10 2.5v3h3M6 9h5M6 11.5h5"/></svg><span class="lt">Vows, first draft.docx</span><span class="ls">Google Drive</span><span class="ld">14 Sep</span></div><div class="lgrp"><b>Friday</b> 12 September <span class="faint">3</span></div><div class="lrow" style="--i:7"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#1f9d6f"><circle cx="8" cy="5.8" r="2.7"/><path d="M3.5 13.5c0-2.6 2-4.2 4.5-4.2s4.5 1.6 4.5 4.2"/></svg><span class="lt">Maya is allergic to cashews</span><span class="ls">Chat with ChatGPT</span><span class="ld">12 Sep</span></div><div class="lrow" style="--i:8"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#c2452d"><path d="M2.5 8c3-4 8-4 11 0-3 4-8 4-11 0z"/><circle cx="8" cy="8" r="1.5"/></svg><span class="lt">Would rather forty people we love than a hundred and fifty</span><span class="ls">Chat with Claude</span><span class="ld">12 Sep</span></div><div class="lrow" style="--i:9"><span class="tick"></span><svg class="ic" viewBox="0 0 16 16" style="color:#b8860b"><path d="M3 5.5h10M3 10.5h10M6 2.5l-1 11M11 2.5l-1 11"/></svg><span class="lt">Wedding budget</span><span class="ls">Eve noted this</span><span class="ld">12 Sep</span></div></div><div class="pane p-atlas"><div class="arail"><div class="faint sm">214 memories · Sep 22 · 4:48 PM</div><div class="aacts"><svg class="ic" viewBox="0 0 16 16"><rect x="2.5" y="3.5" width="11" height="9" rx="1"/></svg> Draft outline <span style="width:14px"></span><svg class="ic" viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.5M13 2.5v3h-3"/></svg> Refresh</div><div class="arule"></div><div class="ach">State of things</div><div class="ach on">The wedding</div><div class="ach">Family</div><div class="ach">Knee physio</div><div class="ach">Lisbon in April</div></div><div class="apage"><h4>The wedding</h4><p class="alead">Moved to Saturday 7 June at the boathouse. Small, about forty guests, with the menu planned around Maya.</p><p>The wedding is on Saturday 7 June at the boathouse. It moved from 31 May when the boathouse had a cancellation. <span class="cite">[1, +1]</span></p><p>It will be small, about forty people, and Hannah is giving the speech. <span class="cite">[3, +1]</span></p><p>The tasting menu is on 3 October, planned around Maya’s cashew allergy. <span class="cite">[5]</span></p><div class="adrawn"><span>Drawn from · 5</span><span class="sp"></span><span class="lk">Hide</span></div><div class="asrc"><span><i>1</i>Moved to 7 June</span><span><i>2</i>Boathouse booked</span><span><i>3</i>About forty guests</span><span><i>4</i>Hannah is giving the speech</span><span><i>5</i>Maya is allergic to cashews</span></div></div></div><div class="pane p-board"><div class="bhead"><div><div class="btitle"><svg class="ic" viewBox="0 0 16 16"><rect x="2" y="2.5" width="3.5" height="11" rx=".8"/><rect x="6.25" y="2.5" width="3.5" height="7" rx=".8"/><rect x="10.5" y="2.5" width="3.5" height="9" rx=".8"/></svg> Board</div><div class="soft sm">Where your projects stand. Drag a project to move it between stages.</div></div><div class="btabs"><span class="on">Projects</span><span>Calendar</span></div></div><div class="bbar"><span>New project</span><span>Seed from chapter</span><span>Edit stages</span><span class="sp"></span><span class="faint sm">4 projects · 4 stages · Sep 22 · 4:06 PM</span></div><div class="bcols"><div class="bcol"><div class="bch">Backlog<span class="faint">1</span></div><div class="bcard" style="--i:0"><div class="bt">Mum’s 70th</div><div class="bl">Book the hall</div><div class="bl">Ask Aunt Rosa for old photos</div></div></div><div class="bcol"><div class="bch">In progress<span class="faint">2/3</span></div><div class="bcard" style="--i:1"><div class="bt">The wedding<span class="bd">Oct 3</span></div><div class="bl">Send the invites</div><div class="bl">Tasting menu</div></div><div class="bcard" style="--i:2"><div class="bt">Bathroom refit<span class="bd late">Sep 26</span></div><div class="bl">Pick grout colour</div><div class="bl">Waits on Tile order</div></div></div><div class="bcol"><div class="bch">In review<span class="faint">0/3</span></div><div class="bnone">Nothing here yet.</div></div><div class="bcol"><div class="bch">Done<span class="faint">1</span></div><div class="bcard" style="--i:3"><div class="bt">Lisbon in April</div><div class="bl">Flights booked</div><div class="bl">Tram 28 day</div></div></div></div></div></div></div>
+  <div class="chaptersC wrap">
+    <div class="chC" data-view="map"><div class="text"><div class="n">1 of 4</div><h2>Your memory, four ways to read it.</h2><p>The Mindmap: who is in the wedding, where, and what is decided. Keep scrolling. It is the same memory each time.</p></div></div>
+    <div class="chC" data-view="lane"><div class="text"><div class="n">2 of 4</div><h2>Memory Lane.</h2><p>Everything in the order you said it, what’s top of mind first, each with where it came from.</p></div></div>
+    <div class="chC" data-view="atlas"><div class="text"><div class="n">3 of 4</div><h2>Atlas.</h2><p>Short written pages on where things stand, with every sentence tied back to the memories it came from.</p></div></div>
+    <div class="chC" data-view="board"><div class="text"><div class="n">4 of 4</div><h2>Board.</h2><p>Your plans as projects, sorted into what’s next, what’s under way and what’s done.</p></div></div>
+  </div>
+</section>
+
+<!-- ═══ SCENE D ═══ -->
+<section class="rules" id="promises" data-sec="promises"><div class="wrap">
+  <h2>What Eve holds itself to.</h2>
+  <ol>
+    <li style="--c:var(--k-person)"><span class="dot"></span>It learns from what you tell your assistant.</li>
+    <li style="--c:var(--k-event)"><span class="dot"></span>Every memory shows the words it came from.</li>
+    <li style="--c:var(--k-belief)"><span class="dot"></span>You can fix or forget any of it, whenever you like.</li>
+    <li style="--c:var(--k-place)"><span class="dot"></span>It rides on the assistant you already pay for.</li>
+  </ol>
+</div></section>
+
+<div class="wrap"><section class="share"><div>
+  <h2>Share a cortex like a shared doc. Plan the wedding with your partner, or keep the family’s recipes where everyone can find them.</h2>
+  <p>Join the open beta. It’s free while we build it, and it takes a minute to connect.</p>
+  <div class="cta"><a class="btn" href="../">Download Eve for Mac</a><a class="quiet" href="#ch1">Look around first</a></div>
+</div></section></div>
+
+<div class="dawn" id="dawn" aria-hidden="true"><div class="sun"></div><div class="hz"></div></div>
+<footer><div class="wrap"><span><svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><clipPath id="hz3"><rect x="0" y="0" width="48" height="27.7"/></clipPath></defs><circle cx="24" cy="26" r="6.3" fill="#B5673F" clip-path="url(#hz3)"/><path d="M7 28.5 Q24 27.5 41 28.5" stroke="#3A322C" stroke-width="3.4" stroke-linecap="round"/></svg>eve</span><span>Docs</span><span>What's new</span><span>Benchmarks</span><a href="../">Download</a></div></footer>
+
+<script>
+(() => {
+  const K = { event:'var(--k-event)', person:'var(--k-person)', topic:'var(--k-topic)', belief:'var(--k-belief)', place:'var(--k-place)' };
+  const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Scene A: the world. step = the chapter that first shows it; land = gets the violet ring ── */
+  const N = [
+    // the wedding, shown from the first frame
+    ['wedding','The wedding','topic',800,520,12,0,{top:1}],
+    ['hannah','Hannah','person',640,430,8,0],
+    ['boathouse','The boathouse','place',965,430,7,0],
+    ['maya','Maya','person',590,600,7.5,0],
+    ['guests','About forty guests','belief',735,680,6,0],
+    ['budget','Wedding budget','topic',925,650,6.5,0],
+    ['may31','31 May','event',860,370,6,0,{old:2}],
+    ['lake','Lake Merritt','place',1095,340,5.5,0,{minor:1}],
+    ['sofia','Sofia, the florist','person',1080,600,5.5,0,{minor:1}],
+    ['vows','Vows, first draft','event',520,470,5.5,0,{minor:1}],
+    ['speech','Hannah’s speech','event',640,300,5,0,{minor:1}],
+    ['rain','Rain plan','topic',1010,760,5,0,{minor:1}],
+    ['photo','Lee, photographer','person',800,780,5,0,{minor:1}],
+    // chapter 1: the new date lands
+    ['june7','7 June','event',1110,500,9,1,{land:1}],
+    // chapter 2: cashews, then the menu, from two different assistants
+    ['cashews','Allergic to cashews','belief',470,690,6.5,2,{land:1, sub:.25}],
+    ['menu','Tasting menu, 3 Oct','event',610,790,7,2,{land:1, sub:.62}],
+    // chapter 3: the rest of a life
+    ['grant','Mum’s 70th','topic',250,210,11,3,{top:1}],
+    ['priya','Aunt Rosa','person',120,110,7,3],
+    ['bsec','Lemon cake, not chocolate','belief',395,115,6,3,{minor:1}],
+    ['march','Party on 22 March','event',385,300,6.5,3],
+    ['draft','Photo slideshow','event',130,320,5.5,3,{minor:1}],
+    ['refit','Bathroom refit','topic',1350,200,10,3,{top:1}],
+    ['plumber','Book the plumber','event',1480,120,6,3,{minor:1}],
+    ['tiles','The tile shop','place',1215,110,6,3,{minor:1}],
+    ['grout','Pick grout colour','event',1475,300,5.5,3,{minor:1}],
+    ['knee','Knee physio','topic',260,820,9,3],
+    ['tue','Tuesdays, 6pm','event',120,905,5.5,3,{minor:1}],
+    ['anand','Dr Anand','person',400,900,6.5,3],
+    ['stretch','Stretch before runs','belief',140,730,5.5,3,{minor:1}],
+    ['lisbon','Lisbon in April','event',1350,830,10,3,{top:1}],
+    ['flights','Flights booked','event',1480,920,5.5,3,{minor:1}],
+    ['bday','Hannah’s birthday','event',1210,915,6,3],
+    ['tram','Tram 28','place',1490,745,5,3,{minor:1}],
+    ['early','Mum hates surprises','belief',800,140,6,3],
+    ['editor','Calls Mum on Sundays','event',1100,120,5,3,{minor:1}],
+    ['run','Runs on Sundays','event',470,960,5,3,{minor:1}],
+  ];
+  const E = [
+    ['wedding','hannah',0],['wedding','boathouse',0],['wedding','maya',0],['wedding','guests',0],['wedding','budget',0],
+    ['wedding','may31',0,{old:1}],['boathouse','lake',0],['budget','sofia',0],['maya','vows',0],['hannah','speech',0],
+    ['budget','rain',0],['guests','photo',0],['hannah','maya',0],
+    ['june7','wedding',1],['june7','boathouse',1],
+    ['cashews','maya',2,{sub:.25}],['menu','cashews',2,{sub:.62}],['menu','wedding',2,{sub:.62}],
+    ['grant','priya',3],['grant','bsec',3],['grant','march',3],['grant','draft',3],['priya','march',3],
+    ['refit','plumber',3],['refit','tiles',3],['refit','grout',3],['tiles','grout',3],
+    ['knee','tue',3],['knee','anand',3],['knee','stretch',3],['stretch','run',3],['anand','tue',3],
+    ['lisbon','flights',3],['lisbon','bday',3],['lisbon','tram',3],['bday','hannah',3],
+    ['early','grant',3],['editor','early',3],['refit','budget',3],['run','knee',3],['lisbon','june7',3],
+  ];
+  const world = document.getElementById('world'), esvg = document.getElementById('edges');
+  const byId = {};
+  N.forEach(([id, label, kind, x, y, r, step, o = {}]) => {
+    const el = document.createElement('div');
+    el.className = 'node' + (o.top ? ' top' : '') + (o.minor ? ' minor' : '');
+    el.style.cssText = `left:${x}px; top:${y}px; --r:${r}; --c:${K[kind]}`;
+    el.innerHTML = `<span class="ring"></span><span class="dot"></span><span class="lab">${label}</span>`;
+    world.appendChild(el);
+    byId[id] = { el, x, y, step, o };
+  });
+  E.forEach(([a, b, step, o = {}]) => {
+    const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    l.setAttribute('x1', byId[a].x); l.setAttribute('y1', byId[a].y); l.setAttribute('x2', byId[b].x); l.setAttribute('y2', byId[b].y);
+    l.setAttribute('class', 'edge'); esvg.appendChild(l);
+    E.el = E.el || []; E.el.push({ l, step, o });
+  });
+
+  // Where the text column ends, in px. In the hero and chapters 1 and 2 the map is fitted so every
+  // node's label sits wholly to the right of the text column, never half under its backing.
+  // Labels are counter-scaled, so each one's half-width on screen is its layout half-width.
+  let early = null;
+  const measure = () => { early = Object.values(byId).filter(n => n.step <= 2).map(n => ({ x: n.x, h: n.el.querySelector('.lab').offsetWidth / 2 + 6 })); };
+  if (document.fonts) document.fonts.ready.then(measure);
+  addEventListener('resize', measure);
+  function fitEarly(L, R, sMax) {
+    if (!early) measure();
+    // screen x of a node is t + x*s. Need t + x*s - h >= L and t + x*s + h <= R for every node.
+    for (let s = sMax; s > .2; s *= .97) {
+      let lo = -Infinity, hi = Infinity;
+      for (const n of early) { lo = Math.max(lo, L + n.h - n.x * s); hi = Math.min(hi, R - n.h - n.x * s); }
+      if (lo <= hi) return { s, t: (lo + hi) / 2 };
+    }
+    return { s: .2, t: L };
+  }
+  const heroText = document.querySelector('.hero .text'), chText = document.querySelector('#ch1 .text');
+  function view(step, push = 0) {
+    const vw = innerWidth, vh = innerHeight, phone = vw < 760;
+    if (phone) {
+      if (step < 3) { const f = fitEarly(12, vw - 12, 0.66 * (1 + push)); return { s: f.s, fx: 0, fy: 560, ax: f.t, ay: vh * .30 }; }
+      return { s: Math.min(vw / 1640, vh * .5 / 1040), fx: 800, fy: 520, ax: vw * .5, ay: vh * .36 };
+    }
+    if (step < 3) {
+      const L = Math.max(heroText.getBoundingClientRect().right + 16, chText.getBoundingClientRect().right + 50), R = vw - 24;
+      const f = fitEarly(L, R, 1.25 * (1 + push));
+      return { s: f.s, fx: 0, fy: 560, ax: f.t, ay: vh * .52 };
+    }
+    const L = chText.getBoundingClientRect().right + 10, R = vw - 16;
+    const s = Math.min((R - L) / 1640, vh * .86 / 1040);
+    return { s, fx: 800, fy: 520, ax: (L + R) / 2, ay: vh * .54 };
+  }
+  // The first build: rank the opening nodes by distance from the wedding, and give each line the turn
+  // of whichever end lands later, drawn from the end already placed.
+  if (!RM) {
+    const first = Object.entries(byId).filter(([, n]) => n.step === 0).sort((a, b) => Math.hypot(a[1].x - 800, a[1].y - 520) - Math.hypot(b[1].x - 800, b[1].y - 520));
+    const turn = {};
+    first.forEach(([id, n], i) => { turn[id] = .3 + i * .17; n.el.classList.add('first'); n.el.style.setProperty('--di', turn[id].toFixed(2) + 's'); });
+    E.forEach(([a, b, es], i) => {
+      if (es !== 0) return;
+      const l = E.el[i].l, from = turn[a] <= turn[b] ? byId[a] : byId[b];
+      l.classList.add('first'); l.style.transformOrigin = `${from.x}px ${from.y}px`;
+      l.style.setProperty('--di', (Math.max(turn[a], turn[b]) + .05).toFixed(2) + 's');
+    });
+    world.classList.add('intro');
+    setTimeout(() => world.classList.remove('intro'), (.3 + first.length * .17 + .8) * 1000);
+  }
+  let cur = { step:-1, sub:-1 }, curRise = '';
+  function renderA(step, sub, push = 0) {
+    const far = step >= 3;
+    const v = view(step, push);
+    world.style.transform = `translate(${v.ax - v.fx * v.s}px, ${v.ay - v.fy * v.s}px) scale(${v.s})`;
+    // Labels keep their screen size by counter-scaling with --inv. --inv cannot run on the GPU, so
+    // animating it restyles and repaints every label on every frame. Change it only when the chapter
+    // changes; the small lean-in inside a chapter (under 7%) just scales the labels with the map.
+    // (alexa, 2026-09-24: the page hung while scrolling; this ran on every 5% of scroll.)
+    if (step !== cur.step) world.style.setProperty('--inv', (1 / (v.s / (1 + push))).toFixed(3));
+    world.classList.toggle('far', far && v.s < .7);
+    for (const id in byId) {
+      const n = byId[id], o = n.o;
+      const shown = step > n.step || (step === n.step && (o.sub == null || sub >= o.sub));
+      const was = n.el.classList.contains('on');
+      n.el.classList.toggle('on', shown);
+      if (shown && !was && o.land && !RM) { n.el.classList.remove('landed'); void n.el.offsetWidth; n.el.classList.add('landed'); }
+      if (!shown) n.el.classList.remove('landed');
+      n.el.classList.toggle('old', o.old != null && step >= 1 && (step > 1 || sub >= .55));
+      // outer clusters pop in from the centre outwards
+      const d = n.step === 3 && !RM ? Math.hypot(n.x - 800, n.y - 520) / 900 : 0;
+      n.el.style.setProperty('--d', (step === 3 ? d : 0).toFixed(2) + 's');
+    }
+    E.el.forEach(({ l, step: es, o }) => {
+      const on = step > es || (step === es && (o.sub == null || sub >= o.sub));
+      l.classList.toggle('on', on && !(o.old && (step > 1 || (step === 1 && sub >= .55))));
+    });
+  }
+
+  /* ── Scene C: the app window. Scrolling picks the tab; the panes are static HTML above. ── */
+  const win = document.getElementById('win');
+  function renderC(v) { win.dataset.v = v; }
+  function fitC() {
+    const st = document.querySelector('.stageC'), W = st.clientWidth, H = st.clientHeight, phone = W < 760;
+    win.classList.toggle('narrow', phone);
+    const ww = phone ? 460 : 960, wh = phone ? 640 : 600;
+    const aw = phone ? W - 24 : W * .6, ah = phone ? H * .6 : H * .8;
+    const s = Math.min(aw / ww, ah / wh, 1.15);
+    const left = phone ? (W - ww * s) / 2 : W * .37 + (aw - ww * s) / 2;
+    const top = phone ? 70 : (H - wh * s) / 2 + 20;
+    win.style.transform = `translate(${left}px, ${top}px) scale(${s})`;
+  }
+
+  /* ── scroll: which chapter is in charge, and how far through it you are ── */
+  const chs = [...document.querySelectorAll('.ch')], chCs = [...document.querySelectorAll('.chC')];
+  const words = (() => { const y = document.getElementById('you'); const ws = y.textContent.split(' '); y.innerHTML = ws.map(w => `<span class="w">${w}</span>`).join(' '); return [...y.querySelectorAll('.w')]; })();
+  const tool = document.getElementById('tool');
+  const nav = document.querySelector('nav'), navSecs = [...document.querySelectorAll('nav .sec')];
+  const secs = [...document.querySelectorAll('section[data-sec]')], sceneC = document.querySelector('.sceneC'), dawn = document.getElementById('dawn');
+  // Eve saves for a moment (the shimmer), then the row settles to what she did
+  let saveT = 0;
+  new MutationObserver(() => {
+    if (tool.classList.contains('open')) { if (!saveT && !tool.classList.contains('done')) saveT = setTimeout(() => { tool.classList.add('done'); saveT = 0; }, RM ? 0 : 1100); }
+    // Only remove 'done' if it is there: classList.remove rewrites the class attribute even when the
+    // class is absent, which fires this observer again, forever. That froze the tab on scrolling back
+    // up past chapter 1 (alexa, 2026-09-24).
+    else { clearTimeout(saveT); saveT = 0; if (tool.classList.contains('done')) tool.classList.remove('done'); }
+  }).observe(tool, { attributes:true, attributeFilter:['class'] });
+  let curV = '';
+  function tick() {
+    const vh = innerHeight;
+    let step = 0, sub = 0;
+    chs.forEach((c, i) => { const r = c.getBoundingClientRect(); if (r.top < vh * .55) { step = i; sub = Math.max(0, Math.min(1, (vh * .55 - r.top) / Math.max(1, r.height - vh * .45))); } });
+    if (step === 1) {
+      const k = Math.floor(Math.min(1, sub / .45) * words.length);
+      words.forEach((w, i) => w.classList.toggle('on', i < k));
+      tool.classList.toggle('open', sub >= .5);
+    } else { const all = step > 1; words.forEach(w => w.classList.toggle('on', all)); tool.classList.toggle('open', all); }
+    const q = step <= 2 ? Math.round(sub * 20) / 20 : 0;
+    // a slow push-in on the map while you read each chapter (the camera leans in)
+    const push = RM || step > 2 ? 0 : q * .07;
+    if (step !== cur.step || q !== cur.sub) { renderA(step, step === 1 ? (sub >= .55 ? 1 : 0) : q, push); cur = { step, sub:q }; }
+    // top bar: which part of the page you are in, and whether you are over the night field
+    let sec = '';
+    secs.forEach(el => { const r = el.getBoundingClientRect(); if (r.top < 90 && r.bottom > 90) sec = el.dataset.sec; });
+    if (sec === 'how' && step === 0) sec = '';   // the hero is the front door, not a chapter
+    navSecs.forEach(a => a.classList.toggle('now', a.dataset.sec === sec));
+    const cR = sceneC.getBoundingClientRect(); nav.classList.toggle('dark', cR.top < 72 && cR.bottom > 72);
+    // the sun rises over the last screen of the page
+    const dR = dawn.getBoundingClientRect(), rise = RM ? '0' : Math.max(0, Math.min(1, (dR.top - (vh - dR.height)) / dR.height)).toFixed(3);
+    if (rise !== curRise) { dawn.style.setProperty('--rise', rise); curRise = rise; }
+    let v = 'map';
+    chCs.forEach(c => { if (c.getBoundingClientRect().top < vh * .55) v = c.dataset.view; });
+    if (v !== curV) { renderC(v); curV = v; }
+  }
+  // chapter 1: 7 June lands when the tool call opens (sub >= .55 maps to 1 in renderA)
+  byId.june7.o.sub = 1; E.el.filter(e => e.step === 1).forEach(e => e.o.sub = 1);
+
+  let raf = 0;
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; tick(); }); }, { passive:true });
+  addEventListener('resize', () => { cur = { step:-1, sub:-1 }; fitC(); tick(); });
+  // the first frame is placed, not flown to: no camera move on load, only the nodes landing
+  world.style.transition = 'none'; fitC(); tick(); void world.offsetWidth; world.style.transition = '';
+
+  // Scene B and D: each entry builds once as it comes into view
+  // Scene B: the words you said lift out of the quote and settle into the memory Eve kept
+  function fly(entry) {
+    const th = entry.querySelector('.said .th'), what = entry.querySelector('.kept .what');
+    if (RM || !th || !what || !th.animate) return;
+    const host = th.closest('.entry > div'), H = host.getBoundingClientRect(), a = th.getBoundingClientRect(), b = what.getBoundingClientRect();
+    const f = document.createElement('span'); f.className = 'flyer'; f.textContent = th.textContent; host.appendChild(f);
+    f.style.fontSize = getComputedStyle(th).fontSize;
+    const k = parseFloat(getComputedStyle(what).fontSize) / parseFloat(getComputedStyle(th).fontSize);
+    const x0 = a.left - H.left, y0 = a.top - H.top, x1 = b.left - H.left + 26, y1 = b.top - H.top - 2;
+    f.animate([
+      { transform:`translate(${x0}px, ${y0}px) scale(1)`, opacity:1 },
+      { transform:`translate(${x0 + 10}px, ${y0 - 14}px) scale(1.04)`, opacity:1, offset:.2 },
+      { transform:`translate(${x1}px, ${y1}px) scale(${k})`, opacity:.9, offset:.85 },
+      { transform:`translate(${x1}px, ${y1}px) scale(${k})`, opacity:0 },
+    ], { duration:1300, delay:150, easing:'cubic-bezier(.65,0,.2,1)', fill:'both' }).onfinish = () => f.remove();
+  }
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); if (e.target.classList.contains('entry')) fly(e.target); io.unobserve(e.target); } }), { rootMargin:'0px 0px -22% 0px' });
+  document.querySelectorAll('.entry, .rules li').forEach(el => io.observe(el));
+})();
+</script>
+<div style="height:64px"></div><div style="position:fixed;left:0;right:0;bottom:0;z-index:2147483647;background:#1e2126;color:#f1efeb;font:14px/1.5 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;padding:10px 16px;text-align:center">An archived copy of evecortex.com from November 2026. Eve now runs on your Mac: <a href="../" style="color:#f1efeb;font-weight:600">download Eve for Mac</a>.</div></body></html>
