@@ -3,7 +3,7 @@
 #
 #   curl -fsSL https://github.com/alexa-loste/eve-local/releases/latest/download/install.sh | sh
 #
-# Downloads the latest Eve.dmg from this repository's releases, checks its
+# Downloads the latest Eve.dmg (Apple silicon) or Eve-intel.dmg (Intel) from this repository's releases, checks its
 # SHA-256 against the published SHA256SUMS, copies Eve.app into Applications
 # (replacing an older Eve Local), and opens it. Nothing else on the Mac changes.
 set -eu
@@ -15,7 +15,15 @@ say() { printf '%s\n' "$*"; }
 fail() { printf 'Eve Local was not installed: %s\n' "$*" >&2; exit 1; }
 
 [ "$(uname -s)" = "Darwin" ] || fail "it runs on macOS only."
-[ "$(uname -m)" = "arm64" ] || fail "it needs an Apple Silicon Mac (M1 or later)."
+major=$(sw_vers -productVersion | cut -d. -f1)
+[ "$major" -ge 12 ] || fail "it needs macOS 12 (Monterey) or newer."
+# The chip, not the shell: a Terminal running under Rosetta reports x86_64 on
+# an Apple silicon Mac, but hw.optional.arm64 tells the truth.
+if [ "$(sysctl -n hw.optional.arm64 2>/dev/null)" = "1" ]; then
+  DMG="Eve.dmg"
+else
+  DMG="Eve-intel.dmg"
+fi
 
 work=$(mktemp -d /tmp/eve-install.XXXXXX)
 mount="$work/mount"
@@ -25,11 +33,11 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-say "Downloading Eve Local…"
-curl -fL --progress-bar -o "$work/Eve.dmg" "$BASE/Eve.dmg" || fail "the download did not finish. Check your connection and run the command again."
+say "Downloading Eve Local for $( [ "$DMG" = Eve.dmg ] && echo 'Apple silicon' || echo 'Intel' ) Macs…"
+curl -fL --progress-bar -o "$work/Eve.dmg" "$BASE/$DMG" || fail "the download did not finish. Check your connection and run the command again."
 curl -fsSL -o "$work/SHA256SUMS" "$BASE/SHA256SUMS" || fail "could not download the checksum file."
 
-expected=$(awk '$2 == "Eve.dmg" || $2 == "*Eve.dmg" {print $1}' "$work/SHA256SUMS")
+expected=$(awk -v f="$DMG" '$2 == f || $2 == "*" f {print $1}' "$work/SHA256SUMS")
 actual=$(shasum -a 256 "$work/Eve.dmg" | awk '{print $1}')
 [ -n "$expected" ] && [ "$expected" = "$actual" ] || fail "the download did not match its published checksum, so it was not opened."
 

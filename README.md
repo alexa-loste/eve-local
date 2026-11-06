@@ -6,19 +6,19 @@ Eve is a long-term memory for the AI assistants you already use. Eve Local is th
 
 ## Install
 
-Apple Silicon Mac (M1 or later). Paste this into Terminal:
+Any Mac with macOS 12 (Monterey) or newer, Apple chip or Intel. Paste this into Terminal:
 
 ```sh
 curl -fsSL https://github.com/alexa-loste/eve-local/releases/latest/download/install.sh | sh
 ```
 
 The script:
-1. Downloads the latest `Eve.dmg` from [Releases](https://github.com/alexa-loste/eve-local/releases).
+1. Downloads the latest `Eve.dmg` (Apple chip) or `Eve-intel.dmg` (Intel) from [Releases](https://github.com/alexa-loste/eve-local/releases), whichever fits your Mac.
 2. Checks it against the published `SHA256SUMS`.
 3. Copies Eve into Applications, replacing an older version.
 4. Opens it.
 
-Or download `Eve.dmg` from Releases yourself. The app is not notarized, so the first time you open it, macOS asks you to approve it: **System Settings → Privacy & Security → Open Anyway**.
+Or download `Eve.dmg` (Apple chip) or `Eve-intel.dmg` (Intel) from Releases yourself. The app is not notarized, so the first time you open it, macOS asks you to approve it: **System Settings → Privacy & Security → Open Anyway**.
 
 ## First launch
 
